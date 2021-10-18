@@ -5,7 +5,7 @@ object Versions {
 }
 
 object Libs {
-    const val androidGradlePlugin = "com.android.tools.build:gradle:7.0.2"
+    const val androidGradlePlugin = "com.android.tools.build:gradle:7.0.3"
 
     object Accompanist {
         const val version = "0.19.0"
@@ -15,7 +15,7 @@ object Libs {
     }
 
     object Kotlin {
-        private const val version = "1.5.30"
+        private const val version = "1.5.31"
         const val stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$version"
         const val gradlePlugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$version"
         const val extensions = "org.jetbrains.kotlin:kotlin-android-extensions:$version"
@@ -28,12 +28,24 @@ object Libs {
         const val test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$version"
     }
 
+    object Material {
+        const val material = "com.google.android.material:material:1.3.0"
+    }
+
+    object Firebase {
+        const val gradlePlugin = "com.google.gms:google-services:4.3.10"
+        const val bom = "com.google.firebase:firebase-bom:28.4.2"
+        const val analytics = "com.google.firebase:firebase-analytics-ktx"
+        const val auth = "com.google.firebase:firebase-auth-ktx"
+        const val firestore = "com.google.firebase:firebase-firestore-ktx"
+    }
+
     object AndroidX {
         const val coreKtx = "androidx.core:core-ktx:1.6.0"
 
         object Compose {
             const val snapshot = ""
-            const val version = "1.0.3"
+            const val version = "1.0.4"
 
             const val foundation = "androidx.compose.foundation:foundation:${version}"
             const val layout = "androidx.compose.foundation:foundation-layout:${version}"
@@ -49,6 +61,10 @@ object Libs {
 
         object Activity {
             const val activityCompose = "androidx.activity:activity-compose:1.3.1"
+        }
+
+        object AppCompat {
+            const val appcompat = "androidx.appcompat:appcompat:1.3.1"
         }
 
         object Lifecycle {
