@@ -1,3 +1,7 @@
 <resources>
-  <string name="app_name">LittleOne</string>
+  <string name="app_name">Little One</string>
+
+  <!--    Application screens-->
+  <string name="screen_login">Login</string>
+  <string name="screen_feed">Feed</string>
 </resources>
