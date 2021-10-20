@@ -15,7 +15,6 @@ import com.google.accompanist.flowlayout.FlowRow
 import com.google.accompanist.flowlayout.SizeMode
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 
-
 @Composable
 fun ChipGroup(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     FlowRow(
@@ -35,7 +34,9 @@ fun ChipGroup(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
 fun ChipGroupPreview() {
     LittleOneTheme {
         Surface(color = MaterialTheme.colors.primary) {
-            val list = remember { mutableStateListOf("Chip 1", "Chip 2", "Chip 3", "Chip 4", "Chip 5", "Chip 6") }
+            val list = remember {
+                mutableStateListOf("Chip 1", "Chip 2", "Chip 3", "Chip 4", "Chip 5", "Chip 6")
+            }
             ChipGroup(modifier = Modifier.padding(16.dp)) {
                 list.forEachIndexed { index, s ->
                     OutlinedFilterChip(

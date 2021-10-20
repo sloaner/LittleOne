@@ -15,6 +15,10 @@ buildscript {
   }
 }
 
+plugins {
+  id 'com.diffplug.spotless' version '5.17.0'
+}
+
 subprojects {
   tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     kotlinOptions {
@@ -29,8 +33,16 @@ subprojects {
       jvmTarget = "1.8"
     }
   }
-}
 
-task clean(type: Delete) {
-  delete rootProject.buildDir
+  spotless {
+    kotlin {
+      target '**/*.kt'
+      targetExclude("$buildDir/**/*.kt")
+      targetExclude('bin/**/*.kt')
+      targetExclude('buildSrc/**/*.kt')
+
+      ktlint("0.42.1").userData([android: "true"])
+//      licenseHeaderFile rootProject.file('spotless/copyright.kt')
+    }
+  }
 }

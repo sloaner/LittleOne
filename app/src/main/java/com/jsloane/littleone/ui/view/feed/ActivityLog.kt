@@ -1,7 +1,10 @@
 package com.jsloane.littleone.ui.view
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
@@ -25,7 +28,11 @@ fun ActivityLog(modifier: Modifier = Modifier) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "09:30 am", style = MaterialTheme.typography.caption)
                 Box(
-                    modifier = Modifier.padding(8.dp).size(24.dp).background(Color.Cyan, CircleShape).padding(4.dp),
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(24.dp)
+                        .background(Color.Cyan, CircleShape)
+                        .padding(4.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Default.Air, contentDescription = null)

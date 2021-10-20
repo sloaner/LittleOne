@@ -40,7 +40,9 @@ class MainActions(navController: NavHostController) {
     }
 
     val gotoFeed: () -> Unit = {
-        navController.navigate(Screen.Feed.route, navOptions = NavOptions.Builder().setPopUpTo(Screen.Login.route, inclusive = true).build())
+        navController.navigate(
+            Screen.Feed.route,
+            NavOptions.Builder().setPopUpTo(Screen.Login.route, inclusive = true).build()
+        )
     }
-
 }

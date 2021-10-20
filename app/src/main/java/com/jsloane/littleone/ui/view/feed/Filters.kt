@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 @Composable
 fun FilterChipsSection(
     title: String? = null,
-    ) {
+) {
     Column {
         FilterHeader(title = title.orEmpty())
     }

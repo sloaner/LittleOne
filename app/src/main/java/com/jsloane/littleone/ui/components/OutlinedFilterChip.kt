@@ -3,11 +3,21 @@ package com.jsloane.littleone.ui.components
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.typography
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
@@ -41,7 +51,8 @@ fun OutlinedFilterChip(
             false -> Color.Transparent
         },
         border = BorderStroke(
-            1.dp, Color.DarkGray.copy(
+            1.dp,
+            Color.DarkGray.copy(
                 alpha = when {
                     enabled || selected -> ContentAlpha.medium
                     else -> ContentAlpha.disabled
@@ -54,7 +65,10 @@ fun OutlinedFilterChip(
             if (thumbnailIcon == null && !selected) {
                 Spacer(Modifier.size(12.dp))
             } else {
-                Box(modifier = Modifier.padding(start = 4.dp, end = 8.dp), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.padding(start = 4.dp, end = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     if (thumbnailIcon != null) {
                         Surface(
                             color = Color.Transparent,
@@ -73,7 +87,9 @@ fun OutlinedFilterChip(
                     }
                     if (selected) {
                         Icon(
-                            modifier = Modifier.size(24.dp).padding(4.dp),
+                            modifier = Modifier
+                                .size(24.dp)
+                                .padding(4.dp),
                             imageVector = Icons.Default.Check,
                             contentDescription = null
                         )
