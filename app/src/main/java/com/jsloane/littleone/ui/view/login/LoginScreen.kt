@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
@@ -24,15 +26,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jsloane.littleone.R
 import com.jsloane.littleone.navigation.MainActions
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 
 @Composable
-fun LoginScreen(actions: MainActions? = null) {
+fun LoginScreen(
+    actions: MainActions? = null,
+    viewModel: LoginViewModel = viewModel()
+) {
     Surface {
+        val scrollState = rememberScrollState()
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+            modifier = Modifier
+                .padding(horizontal = 20.dp, vertical = 10.dp)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -44,8 +53,8 @@ fun LoginScreen(actions: MainActions? = null) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 8.dp),
-                value = "",
-                onValueChange = {},
+                value = viewModel.email,
+                onValueChange = { viewModel.email = it },
                 label = { Text("Email") }
             )
             OutlinedTextField(
@@ -150,6 +159,6 @@ fun LoginScreen(actions: MainActions? = null) {
 @Composable
 private fun Preview() {
     LittleOneTheme {
-        LoginScreen()
+        LoginScreen(null, LoginViewModel())
     }
 }
