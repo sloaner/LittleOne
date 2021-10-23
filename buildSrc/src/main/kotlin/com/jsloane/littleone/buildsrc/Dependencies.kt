@@ -41,6 +41,15 @@ object Libs {
         const val firestore = "com.google.firebase:firebase-firestore-ktx"
     }
 
+    object Hilt {
+        private const val version = "2.39.1"
+        const val gradlePlugin = "com.google.dagger:hilt-android-gradle-plugin:$version"
+        const val compiler = "com.google.dagger:hilt-android-compiler:$version"
+        const val hilt = "com.google.dagger:hilt-android:$version"
+        const val testing = "com.google.dagger:hilt-android-testing:$version"
+        const val compose = "androidx.hilt:hilt-navigation-compose:1.0.0-alpha03"
+    }
+
     object AndroidX {
         const val coreKtx = "androidx.core:core-ktx:1.6.0"
 

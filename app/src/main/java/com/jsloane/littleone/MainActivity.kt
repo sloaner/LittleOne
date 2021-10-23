@@ -10,8 +10,11 @@ import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.navigation.LittleOneNavGraph
 import com.jsloane.littleone.ui.rememberAppState
 import com.jsloane.littleone.ui.theme.LittleOneTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
-class MainActivity : ComponentActivity() {
+@AndroidEntryPoint
+class MainActivity @Inject constructor() : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {

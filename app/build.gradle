@@ -4,7 +4,15 @@ import com.jsloane.littleone.buildsrc.Libs
 plugins {
   id 'com.android.application'
   id 'kotlin-android'
+  id 'kotlin-kapt'
+
+  id 'dagger.hilt.android.plugin'
   id 'com.google.gms.google-services'
+}
+
+kapt {
+  correctErrorTypes = true
+  useBuildCache = true
 }
 
 android {
@@ -90,6 +98,9 @@ dependencies {
   implementation Libs.Accompanist.insets
   implementation Libs.Accompanist.systemuicontroller
   implementation Libs.Accompanist.flowlayouts
+
+  implementation Libs.Hilt.hilt
+  kapt Libs.Hilt.compiler
 
   implementation Libs.Coil.coilCompose
 
