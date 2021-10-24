@@ -17,6 +17,7 @@ import kotlinx.coroutines.tasks.await
 @HiltViewModel
 class LoginViewModel @Inject constructor() : ViewModel() {
     var email by mutableStateOf("")
+    var password by mutableStateOf("")
 
     val loadingState = MutableStateFlow(LoadingState.IDLE)
 
@@ -30,7 +31,7 @@ class LoginViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun signWithCredential(credential: AuthCredential) = viewModelScope.launch {
+    fun signInWithCredential(credential: AuthCredential) = viewModelScope.launch {
         try {
             loadingState.emit(LoadingState.RUNNING)
             Firebase.auth.signInWithCredential(credential).await()

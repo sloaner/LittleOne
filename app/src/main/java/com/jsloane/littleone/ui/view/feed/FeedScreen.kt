@@ -31,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.navigation.MainActions
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.ui.view.ActivityLog
@@ -83,8 +85,8 @@ fun FeedScreen(actions: MainActions? = null) {
                             onClick = {
                                 // show snackbar as a suspend function
                                 scope.launch {
-                                    scaffoldState.snackbarHostState
-                                        .showSnackbar("Snackbar #${++clickCount}")
+                                    Firebase.auth.signOut()
+                                    scaffoldState.snackbarHostState.showSnackbar("Signed Out")
                                 }
                             }
                         ) {

@@ -11,13 +11,18 @@ import com.jsloane.littleone.ui.view.feed.FeedScreen
 import com.jsloane.littleone.ui.view.login.LoginScreen
 
 @Composable
-fun LittleOneNavGraph() {
+fun LittleOneNavGraph(
+    isUserAuthenticated: Boolean = false
+) {
     val navController = rememberNavController()
     val actions = remember(navController) { MainActions(navController) }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = when (isUserAuthenticated) {
+            true -> Screen.Feed.route
+            false -> Screen.Login.route
+        }
     ) {
         composable(Screen.Login.route) {
             LoginScreen(actions)

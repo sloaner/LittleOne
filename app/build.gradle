@@ -25,6 +25,8 @@ android {
     versionCode 1
     versionName "1.0"
 
+    buildConfigField "String", "GOOGLE_CLIENT_ID", '"' + propOrDef("GOOGLE_CLIENT_ID", "") + '"'
+
     testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     vectorDrawables {
       useSupportLibrary true
@@ -108,6 +110,8 @@ dependencies {
   implementation Libs.Firebase.analytics
   implementation Libs.Firebase.auth
   implementation Libs.Firebase.firestore
+
+  implementation Libs.PlayServices.auth
 
   testImplementation Libs.JUnit.junit
 

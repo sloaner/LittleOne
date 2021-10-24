@@ -33,6 +33,10 @@ object Libs {
         const val material = "com.google.android.material:material:1.3.0"
     }
 
+    object PlayServices {
+        const val auth = "com.google.android.gms:play-services-auth:19.2.0"
+    }
+
     object Firebase {
         const val gradlePlugin = "com.google.gms:google-services:4.3.10"
         const val bom = "com.google.firebase:firebase-bom:28.4.2"

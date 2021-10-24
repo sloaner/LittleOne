@@ -38,3 +38,5 @@ proguard-project.txt
 /captures
 .externalNativeBuild
 .cxx
+
+gradle.properties
