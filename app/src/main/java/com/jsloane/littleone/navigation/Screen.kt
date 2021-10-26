@@ -6,4 +6,5 @@ import com.jsloane.littleone.R
 sealed class Screen(val route: String, @StringRes val title: Int) {
     object Login : Screen("login", R.string.screen_login)
     object Feed : Screen("feed", R.string.screen_feed)
+    object Onboard : Screen("onboard", R.string.screen_feed)
 }

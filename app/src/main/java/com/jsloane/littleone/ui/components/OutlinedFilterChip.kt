@@ -34,17 +34,17 @@ import com.jsloane.littleone.ui.theme.LittleOneTheme
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun OutlinedFilterChip(
+    modifier: Modifier = Modifier,
     text: String,
     thumbnailIcon: @Composable (() -> Unit)? = null,
     selected: Boolean = false,
     enabled: Boolean = true,
-    onClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    onClick: () -> Unit = {}
 ) {
     Surface(
+        modifier = modifier,
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier,
         role = Role.Switch,
         color = when (selected) {
             true -> MaterialTheme.colors.onPrimary.copy(alpha = 0.20F)

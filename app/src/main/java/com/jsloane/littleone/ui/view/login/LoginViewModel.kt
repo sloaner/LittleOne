@@ -1,50 +1,126 @@
 package com.jsloane.littleone.ui.view.login
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.AuthCredential
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.jsloane.littleone.base.InvokeStatus
+import com.jsloane.littleone.domain.UseCase
+import com.jsloane.littleone.domain.observers.ObserveAuthState
+import com.jsloane.littleone.domain.usecases.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
-    var email by mutableStateOf("")
-    var password by mutableStateOf("")
+class LoginViewModel @Inject constructor(
+    observeAuthState: ObserveAuthState,
+    getUser: GetUserUseCase
+) : ViewModel() {
+    private val pendingActions = MutableSharedFlow<LoginAction>()
 
-    val loadingState = MutableStateFlow(LoadingState.IDLE)
+    private val pendingNavigation = MutableStateFlow<LoginAction?>(null)
+    private val email = MutableStateFlow("")
+    private val password = MutableStateFlow("")
 
-    fun signInWithEmailAndPassword(email: String, password: String) = viewModelScope.launch {
-        try {
-            loadingState.emit(LoadingState.RUNNING)
-            Firebase.auth.signInWithEmailAndPassword(email, password).await()
-            loadingState.emit(LoadingState.SUCCESS)
-        } catch (e: Exception) {
-            loadingState.emit(LoadingState.FAILED)
+    private val loadingState = MutableStateFlow<InvokeStatus>(InvokeStatus.Idle)
+
+    val state: StateFlow<LoginViewState> = combine(
+        pendingNavigation,
+        observeAuthState.flow,
+        email,
+        password
+    ) { navigation, authState, email, password ->
+        LoginViewState(
+            pendingNavigation = navigation,
+            email = email,
+            password = password
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = LoginViewState.Empty
+    )
+
+    init {
+        observeAuthState(UseCase.Params.Empty)
+
+        viewModelScope.launch {
+            observeAuthState.flow.collect {
+                if (it) {
+                    getUser(UseCase.Params.Empty).collect { user ->
+                        Log.d("TAG", "User logged in: $it")
+                        if (user?.family == null) {
+                            pendingNavigation.emit(LoginAction.OpenOnboarding)
+                        } else {
+                            pendingNavigation.emit(LoginAction.OpenActivityLog)
+                        }
+                    }
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            pendingActions.collect { action ->
+                when (action) {
+                    is LoginAction.UpdateEmail -> email.emit(action.email)
+                    is LoginAction.UpdatePassword -> password.emit(action.password)
+                    is LoginAction.SignInEmail -> signInWithEmailAndPassword(
+                        email.value,
+                        password.value
+                    )
+                    is LoginAction.SignInToken -> signInWithCredentials(action.intent)
+                    else -> {
+                    }
+                }
+            }
         }
     }
 
-    fun signInWithCredential(credential: AuthCredential) = viewModelScope.launch {
+    private fun signInWithEmailAndPassword(email: String, password: String) =
+        viewModelScope.launch {
+            try {
+                loadingState.emit(InvokeStatus.Started)
+
+                Firebase.auth.signInWithEmailAndPassword(email, password).await()
+
+                loadingState.emit(InvokeStatus.Success)
+            } catch (e: Exception) {
+                loadingState.emit(InvokeStatus.Error(e))
+            }
+        }
+
+    private fun signInWithCredentials(intent: Intent) = viewModelScope.launch {
         try {
-            loadingState.emit(LoadingState.RUNNING)
+            loadingState.emit(InvokeStatus.Started)
+
+            val task = GoogleSignIn.getSignedInAccountFromIntent(intent)
+            val account = task.result
+            val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+
             Firebase.auth.signInWithCredential(credential).await()
-            loadingState.emit(LoadingState.SUCCESS)
+
+            loadingState.emit(InvokeStatus.Success)
         } catch (e: Exception) {
-            loadingState.emit(LoadingState.FAILED)
+            loadingState.emit(InvokeStatus.Error(e))
         }
     }
 
-    enum class LoadingState {
-        RUNNING,
-        SUCCESS,
-        FAILED,
-        IDLE,
+    fun submitAction(action: LoginAction) {
+        viewModelScope.launch {
+            pendingActions.emit(action)
+        }
     }
 }

@@ -84,6 +84,7 @@ dependencies {
   implementation Libs.AndroidX.AppCompat.appcompat
   implementation Libs.AndroidX.Activity.activityCompose
   implementation Libs.AndroidX.Lifecycle.viewModelCompose
+  implementation Libs.AndroidX.Lifecycle.runtime
   implementation Libs.AndroidX.Navigation.navigationCompose
   implementation Libs.AndroidX.ConstraintLayout.constraintLayoutCompose
 
@@ -102,6 +103,7 @@ dependencies {
   implementation Libs.Accompanist.flowlayouts
 
   implementation Libs.Hilt.hilt
+  implementation Libs.Hilt.compose
   kapt Libs.Hilt.compiler
 
   implementation Libs.Coil.coilCompose
