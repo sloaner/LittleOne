@@ -6,7 +6,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath Libs.androidGradlePlugin
+    classpath Libs.Tools.androidGradlePlugin
     classpath Libs.Kotlin.gradlePlugin
     classpath Libs.Firebase.gradlePlugin
     classpath Libs.Hilt.gradlePlugin

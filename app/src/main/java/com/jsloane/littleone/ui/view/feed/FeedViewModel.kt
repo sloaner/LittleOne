@@ -1,4 +1,4 @@
-package com.jsloane.littleone.ui.view.login
+package com.jsloane.littleone.ui.view.feed
 
 import android.content.Intent
 import androidx.lifecycle.ViewModel
@@ -8,9 +8,12 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.InvokeStatus
+import com.jsloane.littleone.domain.FirestoreCollection
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.observers.ObserveAuthState
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
+import com.jsloane.littleone.ui.view.login.LoginAction
+import com.jsloane.littleone.ui.view.login.LoginViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,7 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
+class FeedViewModel @Inject constructor(
     observeAuthState: ObserveAuthState,
     getFamily: GetFamilyUseCase
 ) : ViewModel() {
@@ -59,8 +62,8 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             observeAuthState.flow.collect {
                 if (it) {
-                    getFamily(UseCase.Params.Empty).collect { family ->
-                        if (family == null) {
+                    getFamily(UseCase.Params.Empty).collect { user ->
+                        if (FirestoreCollection.Users.Field.family == null) {
                             pendingNavigation.emit(LoginAction.OpenOnboarding)
                         } else {
                             pendingNavigation.emit(LoginAction.OpenActivityLog)

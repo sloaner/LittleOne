@@ -57,6 +57,7 @@ android {
   compileOptions {
     sourceCompatibility JavaVersion.VERSION_11
     targetCompatibility JavaVersion.VERSION_11
+    coreLibraryDesugaringEnabled = true
   }
   buildFeatures {
     compose true
@@ -101,6 +102,8 @@ dependencies {
   implementation Libs.Accompanist.insets
   implementation Libs.Accompanist.systemuicontroller
   implementation Libs.Accompanist.flowlayouts
+  implementation Libs.Accompanist.pager
+  implementation Libs.Accompanist.indicators
 
   implementation Libs.Hilt.hilt
   implementation Libs.Hilt.compose
@@ -114,6 +117,8 @@ dependencies {
   implementation Libs.Firebase.firestore
 
   implementation Libs.PlayServices.auth
+
+  coreLibraryDesugaring Libs.Tools.desugaring
 
   testImplementation Libs.JUnit.junit
 

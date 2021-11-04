@@ -11,6 +11,7 @@ import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.ListItem
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -31,8 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.jsloane.littleone.navigation.MainActions
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.ui.view.ActivityLog
@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FeedScreen(actions: MainActions? = null) {
+fun FeedScreen(actions: MainActions? = null, viewModel: FeedViewModel = hiltViewModel()) {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
     val backdropState = rememberBackdropScaffoldState(initialValue = BackdropValue.Concealed)
@@ -85,9 +85,10 @@ fun FeedScreen(actions: MainActions? = null) {
                             onClick = {
                                 // show snackbar as a suspend function
                                 scope.launch {
-                                    Firebase.auth.signOut()
+                                    // Firebase.auth.signOut()
                                     scaffoldState.snackbarHostState.showSnackbar("Signed Out")
                                 }
+                                actions?.openOnboarding?.invoke()
                             }
                         ) {
                             Icon(
@@ -113,6 +114,7 @@ fun FeedScreen(actions: MainActions? = null) {
                     }
                 }
             },
+            frontLayerBackgroundColor = MaterialTheme.colors.surface,
             frontLayerContent = {
                 ActivityLog()
             }

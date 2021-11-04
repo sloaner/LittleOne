@@ -13,7 +13,9 @@ object FirestoreCollection {
         override val id = "family"
 
         enum class Field {
-            users
+            users,
+            inviteCode,
+            inviteExpiration
         }
     }
 
@@ -21,7 +23,7 @@ object FirestoreCollection {
         override val id = "child"
 
         enum class Field {
-            first_name,
+            firstName,
             birthday
         }
     }

@@ -5,13 +5,18 @@ object Versions {
 }
 
 object Libs {
-    const val androidGradlePlugin = "com.android.tools.build:gradle:7.0.3"
+    object Tools {
+        const val androidGradlePlugin = "com.android.tools.build:gradle:7.0.3"
+        const val desugaring = "com.android.tools:desugar_jdk_libs:1.1.5"
+    }
 
     object Accompanist {
         const val version = "0.19.0"
         const val insets = "com.google.accompanist:accompanist-insets:$version"
         const val systemuicontroller = "com.google.accompanist:accompanist-systemuicontroller:$version"
         const val flowlayouts = "com.google.accompanist:accompanist-flowlayout:$version"
+        const val pager = "com.google.accompanist:accompanist-pager:$version"
+        const val indicators = "com.google.accompanist:accompanist-pager-indicators:$version"
     }
 
     object Kotlin {
