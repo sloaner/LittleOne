@@ -5,7 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.AppCoroutineDispatchers
-import com.jsloane.littleone.domain.FirestoreCollection
+import com.jsloane.littleone.domain.LOFirestore
 import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
 import java.time.LocalDateTime
@@ -21,13 +21,13 @@ class InviteFamilyMemberUseCase @Inject constructor() :
             val inviteCode = findValidInviteCode()
 
             Firebase.firestore
-                .collection(FirestoreCollection.Family.id)
+                .collection(LOFirestore.Family.id)
                 .document(params.family_id)
                 .update(
                     mapOf(
-                        FirestoreCollection.Family.Field.inviteCode.name to
+                        LOFirestore.Family.Field.inviteCode.name to
                             inviteCode,
-                        FirestoreCollection.Family.Field.inviteExpiration.name to
+                        LOFirestore.Family.Field.inviteExpiration.name to
                             Timestamp(
                                 LocalDateTime.now()
                                     .plusDays(1)
@@ -47,13 +47,13 @@ class InviteFamilyMemberUseCase @Inject constructor() :
         do {
             val inviteCode = (1..6).map { allowedChars.random() }.joinToString("")
             val codeResults = Firebase.firestore
-                .collection(FirestoreCollection.Family.id)
+                .collection(LOFirestore.Family.id)
                 .whereEqualTo(
-                    FirestoreCollection.Family.Field.inviteCode.name,
+                    LOFirestore.Family.Field.inviteCode.name,
                     inviteCode
                 )
                 .whereGreaterThanOrEqualTo(
-                    FirestoreCollection.Family.Field.inviteExpiration.name,
+                    LOFirestore.Family.Field.inviteExpiration.name,
                     Timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), 0)
                 )
                 .get()

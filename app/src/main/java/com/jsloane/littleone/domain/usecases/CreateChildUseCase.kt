@@ -5,7 +5,7 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.AppCoroutineDispatchers
 import com.jsloane.littleone.data.entities.Child
-import com.jsloane.littleone.domain.FirestoreCollection
+import com.jsloane.littleone.domain.LOFirestore
 import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
 import java.time.LocalDate
@@ -26,11 +26,11 @@ class CreateChildUseCase @Inject constructor(
                 ?: return@withContext null
 
             val familyRef = Firebase.firestore
-                .collection(FirestoreCollection.Family.id)
+                .collection(LOFirestore.Family.id)
                 .document(familyId)
 
             val childRef = familyRef
-                .collection(FirestoreCollection.Child.id)
+                .collection(LOFirestore.Child.id)
                 .add(
                     Child(
                         name = params.name,

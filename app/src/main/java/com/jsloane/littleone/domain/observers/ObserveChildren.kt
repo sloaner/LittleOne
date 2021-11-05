@@ -6,7 +6,7 @@ import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.data.entities.Child
-import com.jsloane.littleone.domain.FirestoreCollection
+import com.jsloane.littleone.domain.LOFirestore
 import com.jsloane.littleone.domain.ObservableUseCase
 import com.jsloane.littleone.domain.UseCase
 import javax.inject.Inject
@@ -24,9 +24,9 @@ class ObserveChildren @Inject constructor(
         }
 
         val childrenListener = Firebase.firestore
-            .collection(FirestoreCollection.Family.id)
+            .collection(LOFirestore.Family.id)
             .document(params.family_id)
-            .collection(FirestoreCollection.Child.id)
+            .collection(LOFirestore.Child.id)
             .addSnapshotListener(queryHandler)
 
         awaitClose { childrenListener.remove() }

@@ -8,7 +8,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.InvokeStatus
-import com.jsloane.littleone.domain.FirestoreCollection
+import com.jsloane.littleone.domain.LOFirestore
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.observers.ObserveAuthState
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
@@ -63,7 +63,7 @@ class FeedViewModel @Inject constructor(
             observeAuthState.flow.collect {
                 if (it) {
                     getFamily(UseCase.Params.Empty).collect { user ->
-                        if (FirestoreCollection.Users.Field.family == null) {
+                        if (LOFirestore.Users.Field.family == null) {
                             pendingNavigation.emit(LoginAction.OpenOnboarding)
                         } else {
                             pendingNavigation.emit(LoginAction.OpenActivityLog)

@@ -1,6 +1,6 @@
 package com.jsloane.littleone.domain
 
-object FirestoreCollection {
+object LOFirestore {
     object Users : Collection() {
         override val id = "user"
 

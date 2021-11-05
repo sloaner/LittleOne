@@ -7,7 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.AppCoroutineDispatchers
-import com.jsloane.littleone.domain.FirestoreCollection
+import com.jsloane.littleone.domain.LOFirestore
 import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
 import java.time.LocalDateTime
@@ -29,13 +29,13 @@ class JoinFamilyByInviteCodeUseCase @Inject constructor() :
                 )
 
             val inviteFamilyDoc = Firebase.firestore
-                .collection(FirestoreCollection.Family.id)
+                .collection(LOFirestore.Family.id)
                 .whereEqualTo(
-                    FirestoreCollection.Family.Field.inviteCode.name,
+                    LOFirestore.Family.Field.inviteCode.name,
                     params.inviteCode
                 )
                 .whereGreaterThanOrEqualTo(
-                    FirestoreCollection.Family.Field.inviteExpiration.name,
+                    LOFirestore.Family.Field.inviteExpiration.name,
                     Timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), 0)
                 )
                 .get()
@@ -53,7 +53,7 @@ class JoinFamilyByInviteCodeUseCase @Inject constructor() :
                 )
 
             inviteFamilyDoc.documents.first().reference.update(
-                FirestoreCollection.Family.Field.users.name,
+                LOFirestore.Family.Field.users.name,
                 FieldValue.arrayUnion(userId)
             ).await()
 
