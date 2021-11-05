@@ -14,7 +14,17 @@ buildscript {
 }
 
 plugins {
-  id 'com.diffplug.spotless' version '5.17.0'
+  id 'com.diffplug.spotless' version '5.17.1'
+  id "com.github.ben-manes.versions" version "0.39.0"
+}
+
+tasks.named("dependencyUpdates").configure {
+  rejectVersionIf {
+    def version = it.candidate.version
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { keyword -> version.toUpperCase().contains(keyword) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+  }
 }
 
 subprojects {
