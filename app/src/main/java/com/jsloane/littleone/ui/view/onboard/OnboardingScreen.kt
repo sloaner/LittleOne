@@ -34,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.jsloane.littleone.navigation.Screen
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.util.DateVisualTransformation
 import com.jsloane.littleone.util.rememberFlowWithLifecycle
@@ -53,6 +55,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
@@ -62,11 +65,24 @@ fun OnboardingScreen(
 ) {
     val viewState by rememberFlowWithLifecycle(viewModel.state)
         .collectAsState(initial = OnboardViewState.Empty)
+    val scope = rememberCoroutineScope()
 
     OnboardingScreen(
         viewState = viewState,
         actions = {
             when (it) {
+                OnboardAction.OpenActivityLog -> openActivityLog()
+
+                is OnboardAction.UpdateBabyName -> scope.launch {
+                    viewModel.babyName.emit(it.name)
+                }
+                is OnboardAction.UpdateBabyBirthday -> scope.launch {
+                    viewModel.babyBirthday.emit(it.birthday)
+                }
+                is OnboardAction.UpdateInviteCode -> scope.launch {
+                    viewModel.inviteCode.emit(it.inviteCode)
+                }
+
                 else -> {
                     viewModel.submitAction(it)
                 }
@@ -88,13 +104,15 @@ internal fun OnboardingScreen(
     actions: (OnboardAction) -> Unit
 ) {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     var selectedScreen by remember { mutableStateOf(OnboardState.ROOT) }
-    var name by remember { mutableStateOf("") }
-    var birthday by remember { mutableStateOf("") }
-    var inviteCode by remember { mutableStateOf("") }
 
-    val scrollState = rememberScrollState()
+    when (viewState.navigateTo) {
+        is Screen.Feed -> actions(OnboardAction.OpenActivityLog)
+        else -> {
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -135,8 +153,8 @@ internal fun OnboardingScreen(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
                     label = { Text("Baby's name") },
-                    value = name,
-                    onValueChange = { name = it },
+                    value = viewState.baby_name,
+                    onValueChange = { actions(OnboardAction.UpdateBabyName(it)) },
                     singleLine = true
                 )
                 OutlinedTextField(
@@ -144,8 +162,8 @@ internal fun OnboardingScreen(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
                     label = { Text("Birthday") },
-                    value = birthday,
-                    onValueChange = { birthday = it },
+                    value = viewState.baby_birthday,
+                    onValueChange = { actions(OnboardAction.UpdateBabyBirthday(it)) },
                     placeholder = { Text("MM/DD/YYYY") },
                     singleLine = true,
                     visualTransformation = DateVisualTransformation(),
@@ -161,9 +179,13 @@ internal fun OnboardingScreen(
                                     picker.toString()
                                 )
                                 picker.addOnPositiveButtonClickListener { millis ->
-                                    birthday = Instant.ofEpochMilli(millis)
-                                        .atZone(ZoneId.systemDefault())
-                                        .format(birthdayFormatter)
+                                    actions(
+                                        OnboardAction.UpdateBabyBirthday(
+                                            Instant.ofEpochMilli(millis)
+                                                .atZone(ZoneId.systemDefault())
+                                                .format(birthdayFormatter)
+                                        )
+                                    )
                                 }
                             }
                         ) {
@@ -179,8 +201,8 @@ internal fun OnboardingScreen(
                     onClick = {
                         actions(
                             OnboardAction.CreateFamily(
-                                name,
-                                LocalDate.parse(birthday, birthdayFormatter)
+                                viewState.baby_name,
+                                LocalDate.parse(viewState.baby_birthday, birthdayFormatter)
                             )
                         )
                     }
@@ -214,8 +236,8 @@ internal fun OnboardingScreen(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
                     label = { Text("Invite Code") },
-                    value = inviteCode,
-                    onValueChange = { inviteCode = it },
+                    value = viewState.invite_code,
+                    onValueChange = { actions(OnboardAction.UpdateInviteCode(it)) },
                     singleLine = true
                 )
                 Button(
@@ -223,7 +245,7 @@ internal fun OnboardingScreen(
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 8.dp),
                     shape = RoundedCornerShape(50),
-                    onClick = { actions(OnboardAction.JoinFamily(inviteCode)) }
+                    onClick = { actions(OnboardAction.JoinFamily(viewState.invite_code)) }
                 ) {
                     Text(
                         modifier = Modifier.padding(vertical = 8.dp),
