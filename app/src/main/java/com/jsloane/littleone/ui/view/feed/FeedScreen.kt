@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jsloane.littleone.navigation.MainActions
 import com.jsloane.littleone.ui.theme.LittleOneTheme
-import com.jsloane.littleone.ui.view.ActivityLog
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)

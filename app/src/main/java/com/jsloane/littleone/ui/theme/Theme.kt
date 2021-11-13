@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jsloane.littleone.R
@@ -307,6 +308,42 @@ private fun Gallery() {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Preview("Typography - Day")
+@Preview("Typography - Night", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun previewTypography() {
+    val styles = mapOf(
+        MaterialTheme.typography.h1 to "h1",
+        MaterialTheme.typography.h2 to "h2",
+        MaterialTheme.typography.h3 to "h3",
+        MaterialTheme.typography.h4 to "h4",
+        MaterialTheme.typography.h5 to "h5",
+        MaterialTheme.typography.h6 to "h6",
+        MaterialTheme.typography.subtitle1 to "subtitle1",
+        MaterialTheme.typography.subtitle2 to "subtitle2",
+        MaterialTheme.typography.body1 to "body1",
+        MaterialTheme.typography.body2 to "body2",
+        MaterialTheme.typography.button to "button",
+        MaterialTheme.typography.caption to "caption",
+        MaterialTheme.typography.overline to "overline",
+    )
+    LittleOneTheme {
+        androidx.compose.material.Surface {
+            Column {
+                styles.forEach {
+                    Text(
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        text = "${it.value}: Lorem ipsum dolor sit amet, consectetur adipiscing el",
+                        style = it.key,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
