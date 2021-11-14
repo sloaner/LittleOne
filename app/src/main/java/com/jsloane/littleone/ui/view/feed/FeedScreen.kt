@@ -20,9 +20,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.primarySurface
 import androidx.compose.material.rememberBackdropScaffoldState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,13 +35,37 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.jsloane.littleone.navigation.MainActions
 import com.jsloane.littleone.ui.theme.LittleOneTheme
+import com.jsloane.littleone.ui.view.feed.components.ActivityLog
+import com.jsloane.littleone.util.rememberFlowWithLifecycle
 import kotlinx.coroutines.launch
+
+@Composable
+fun FeedScreen(
+    openOnboarding: () -> Unit,
+    viewModel: FeedViewModel = hiltViewModel()
+) {
+    val viewState by rememberFlowWithLifecycle(viewModel.state)
+        .collectAsState(initial = FeedViewState.Empty)
+
+    FeedScreen(
+        viewState = viewState,
+        actions = {
+            when (it) {
+                else -> {
+                    viewModel.submitAction(it)
+                }
+            }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FeedScreen(actions: MainActions? = null, viewModel: FeedViewModel = hiltViewModel()) {
+internal fun FeedScreen(
+    viewState: FeedViewState,
+    actions: (FeedAction) -> Unit
+) {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
     val backdropState = rememberBackdropScaffoldState(initialValue = BackdropValue.Concealed)
@@ -87,7 +113,7 @@ fun FeedScreen(actions: MainActions? = null, viewModel: FeedViewModel = hiltView
                                     // Firebase.auth.signOut()
                                     scaffoldState.snackbarHostState.showSnackbar("Signed Out")
                                 }
-                                actions?.openOnboarding?.invoke()
+                                actions(FeedAction.OpenActivityLog)
                             }
                         ) {
                             Icon(
@@ -100,6 +126,7 @@ fun FeedScreen(actions: MainActions? = null, viewModel: FeedViewModel = hiltView
                     backgroundColor = Color.Transparent
                 )
             },
+            backLayerBackgroundColor = MaterialTheme.colors.primarySurface,
             backLayerContent = {
                 LazyColumn {
                     items(if (selection.value >= 3) 3 else 5) {
@@ -126,6 +153,6 @@ fun FeedScreen(actions: MainActions? = null, viewModel: FeedViewModel = hiltView
 @Composable
 private fun Preview() {
     LittleOneTheme {
-        FeedScreen()
+        FeedScreen(FeedViewState.Empty) {}
     }
 }

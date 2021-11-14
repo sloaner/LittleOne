@@ -1,4 +1,4 @@
-package com.jsloane.littleone.ui.view.feed
+package com.jsloane.littleone.ui.view.feed.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
@@ -17,12 +17,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ProvideTextStyle
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.lerp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ChainStyle
@@ -189,37 +190,34 @@ fun ActivityItemConnected(
                         linkTo(titleRef.top, descRef.bottom)
                     }
             ) {
-                Icon(painterResource(id = activity.icon), null)
-            }
-
-            val styleProgress: Float by animateFloatAsState(if (expanded) 1f else 0f)
-
-            ProvideTextStyle(
-                lerp(
-                    start = MaterialTheme.typography.body2,
-                    stop = MaterialTheme.typography.body2,
-                    fraction = styleProgress
-                )
-            ) {
-                Text(
-                    modifier = Modifier
-                        .constrainAs(titleRef) {
-                            start.linkTo(iconRef.end, 8.dp)
-                            top.linkTo(parent.top, 8.dp)
-                        },
-                    text = activity.title
+                Icon(
+                    painterResource(id = activity.icon),
+                    null,
+                    tint = MaterialTheme.colors.onSecondary
                 )
             }
 
             Text(
-                modifier = Modifier.constrainAs(descRef) {
-                    start.linkTo(titleRef.start)
-                    top.linkTo(titleRef.bottom, 4.dp)
-                    bottom.linkTo(parent.bottom, 8.dp)
-                },
-                text = RelativeTimeFormatter.format(time),
-                style = MaterialTheme.typography.caption
+                modifier = Modifier
+                    .constrainAs(titleRef) {
+                        start.linkTo(iconRef.end, 8.dp)
+                        top.linkTo(parent.top, 9.dp)
+                    },
+                text = activity.title,
+                style = MaterialTheme.typography.body2
             )
+
+            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                Text(
+                    modifier = Modifier.constrainAs(descRef) {
+                        start.linkTo(titleRef.start)
+                        top.linkTo(titleRef.bottom, 2.dp)
+                        bottom.linkTo(parent.bottom, 9.dp)
+                    },
+                    text = RelativeTimeFormatter.format(time),
+                    style = MaterialTheme.typography.caption
+                )
+            }
         }
     }
 }

@@ -46,7 +46,9 @@ fun LittleOneNavGraph(
         }
 
         composable(Screen.Feed.route) {
-            FeedScreen(actions)
+            FeedScreen(
+                openOnboarding = actions.openOnboarding
+            )
         }
     }
 }
