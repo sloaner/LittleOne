@@ -48,18 +48,19 @@ import kotlin.random.Random
 
 val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a").withZone(ZoneId.systemDefault())
 
-enum class ActivityType(val title: String, @DrawableRes val icon: Int) {
-    LEFT_BREAST("Feeding · Left Breast", R.drawable.ic_breast_left),
-    RIGHT_BREAST("Feeding · Right Breast", R.drawable.ic_breast_right),
-    BOTTLE("Feeding · Bottle", R.drawable.ic_bottle),
-    MEAL("Feeding · Meal", R.drawable.ic_meal),
-    PEE("Diaper · Pee", R.drawable.ic_pee),
-    POOP("Diaper · Poop", R.drawable.ic_poop),
-    TUMMY_TIME("Leisure · Tummy Time", R.drawable.ic_tummy_time),
-    PLAY("Leisure · Play", R.drawable.ic_play),
-    OUTDOORS("Leisure · Outdoors", R.drawable.ic_outdoors),
-    BATH("Leisure · Bath", R.drawable.ic_bath),
-    TV("Leisure · TV", R.drawable.ic_tv)
+enum class ActivityType(val title: String, val category: String, @DrawableRes val icon: Int) {
+    LEFT_BREAST("Left Breast", "Feeding", R.drawable.ic_breast_left),
+    RIGHT_BREAST("Right Breast", "Feeding", R.drawable.ic_breast_right),
+    BOTTLE("Bottle", "Feeding", R.drawable.ic_bottle),
+    MEAL("Meal", "Feeding", R.drawable.ic_meal),
+    PEE("Pee", "Diaper", R.drawable.ic_pee),
+    POOP("Poop", "Diaper", R.drawable.ic_poop),
+    TUMMY_TIME("Tummy Time", "Leisure", R.drawable.ic_tummy_time),
+    PLAY("Play", "Leisure", R.drawable.ic_play),
+    OUTDOORS("Outdoors", "Leisure", R.drawable.ic_outdoors),
+    BATH("Bath", "Leisure", R.drawable.ic_bath),
+    TV("TV", "Leisure", R.drawable.ic_tv),
+    SLEEP("Sleep", "Sleep", R.drawable.ic_sleep)
 }
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
@@ -203,7 +204,7 @@ fun ActivityItemConnected(
                         start.linkTo(iconRef.end, 8.dp)
                         top.linkTo(parent.top, 9.dp)
                     },
-                text = activity.title,
+                text = "${activity.category} · ${activity.title}",
                 style = MaterialTheme.typography.body2
             )
 
@@ -240,7 +241,7 @@ fun TimelineMarker(modifier: Modifier, content: @Composable () -> Unit) {
 fun ActivityLog(modifier: Modifier = Modifier) {
     var expanded: Int by remember { mutableStateOf(3) }
 
-    LazyColumn(modifier = Modifier.padding(vertical = 20.dp, horizontal = 8.dp)) {
+    LazyColumn(modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp)) {
         itemsIndexed(ActivityType.values()) { index, activityType ->
 
             ActivityItemConnected(

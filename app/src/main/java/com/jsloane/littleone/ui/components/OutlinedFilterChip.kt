@@ -2,6 +2,7 @@ package com.jsloane.littleone.ui.components
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,17 +19,21 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.contentColorFor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.primarySurface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jsloane.littleone.R
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -36,23 +41,25 @@ import com.jsloane.littleone.ui.theme.LittleOneTheme
 fun OutlinedFilterChip(
     modifier: Modifier = Modifier,
     text: String,
-    thumbnailIcon: @Composable (() -> Unit)? = null,
+    thumbnailIcon: (@Composable () -> Unit)? = null,
     selected: Boolean = false,
     enabled: Boolean = true,
     onClick: () -> Unit = {}
 ) {
+    val contentColor = MaterialTheme.colors.contentColorFor(MaterialTheme.colors.primarySurface)
+
     Surface(
         modifier = modifier,
         onClick = onClick,
         enabled = enabled,
         role = Role.Switch,
         color = when (selected) {
-            true -> MaterialTheme.colors.onPrimary.copy(alpha = 0.20F)
+            true -> contentColor.copy(alpha = 0.20F)
             false -> Color.Transparent
         },
         border = BorderStroke(
             1.dp,
-            Color.DarkGray.copy(
+            contentColor.copy(
                 alpha = when {
                     enabled || selected -> ContentAlpha.medium
                     else -> ContentAlpha.disabled
@@ -73,7 +80,8 @@ fun OutlinedFilterChip(
                         Surface(
                             color = Color.Transparent,
                             modifier = Modifier
-                                .matchParentSize()
+                                .size(24.dp)
+                                .padding(4.dp)
                                 .clip(CircleShape)
                                 .alpha(
                                     when {
@@ -98,7 +106,7 @@ fun OutlinedFilterChip(
             }
             Text(
                 text = text,
-                color = MaterialTheme.colors.onPrimary.copy(
+                color = contentColor.copy(
                     alpha = when {
                         enabled || selected -> ContentAlpha.high
                         else -> ContentAlpha.disabled
@@ -118,7 +126,7 @@ fun OutlinedFilterChip(
 @Composable
 fun FilterChipPreview() {
     LittleOneTheme {
-        Surface(color = MaterialTheme.colors.primary) {
+        Surface(color = MaterialTheme.colors.primarySurface) {
             Column {
                 OutlinedFilterChip(
                     text = "Disabled Chip",
@@ -139,7 +147,7 @@ fun FilterChipPreview() {
                     modifier = Modifier.padding(8.dp)
                 )
                 OutlinedFilterChip(
-                    text = "Disabled Chip",
+                    text = "Disabled Image Chip",
                     enabled = false,
                     selected = false,
                     thumbnailIcon = {
@@ -148,20 +156,26 @@ fun FilterChipPreview() {
                     modifier = Modifier.padding(8.dp)
                 )
                 OutlinedFilterChip(
-                    text = "Enabled Chip",
+                    text = "Enabled Image Chip",
                     enabled = true,
                     selected = false,
                     thumbnailIcon = {
-                        Box(modifier = Modifier.background(MaterialTheme.colors.secondary))
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_logo),
+                            contentDescription = null
+                        )
                     },
                     modifier = Modifier.padding(8.dp)
                 )
                 OutlinedFilterChip(
-                    text = "Selected Chip",
+                    text = "Selected Image Chip",
                     enabled = true,
                     selected = true,
                     thumbnailIcon = {
-                        Box(modifier = Modifier.background(MaterialTheme.colors.secondary))
+                        Image(
+                            painter = painterResource(id = R.drawable.img_logo_google),
+                            contentDescription = null
+                        )
                     },
                     modifier = Modifier.padding(8.dp)
                 )

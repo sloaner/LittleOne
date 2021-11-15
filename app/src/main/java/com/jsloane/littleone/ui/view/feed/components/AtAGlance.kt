@@ -1,16 +1,20 @@
 package com.jsloane.littleone.ui.view.feed.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -18,57 +22,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
 import com.jsloane.littleone.R
+import com.jsloane.littleone.ui.theme.LittleOneTheme
 
 @Composable
 fun AtAGlance(modifier: Modifier = Modifier) {
-    ConstraintLayout(modifier = modifier) {
-        val (titleRef, pickerRef, eatRef, diaperRef, sleepRef) = createRefs()
-
-        Text(
-            modifier = Modifier.constrainAs(titleRef) {
-                top.linkTo(parent.top, 16.dp)
-                start.linkTo(parent.start, 24.dp)
-            },
-            text = "Today at a glance"
-        )
-        Icon(
-            modifier = Modifier.constrainAs(pickerRef) {
-                top.linkTo(parent.top, 16.dp)
-                end.linkTo(parent.end, 24.dp)
-            },
-            imageVector = Icons.Default.Event,
-            contentDescription = null
-        )
-        GlanceItem(
-            modifier = Modifier.constrainAs(eatRef) {
-                top.linkTo(titleRef.bottom)
-                linkTo(start = titleRef.start, end = diaperRef.start)
-            },
-            icon = R.drawable.ic_bottle,
-            line1 = "3 feeds",
-            line2 = "42 mins"
-        )
-        GlanceItem(
-            modifier = Modifier.constrainAs(diaperRef) {
-                top.linkTo(titleRef.bottom)
-                linkTo(start = eatRef.end, end = sleepRef.start)
-
-            },
-            icon = R.drawable.ic_diaper,
-            line1 = "6 changes",
-            line2 = "4 pee · 3 poo"
-        )
-        GlanceItem(
-            modifier = Modifier.constrainAs(sleepRef) {
-                top.linkTo(titleRef.bottom)
-                linkTo(start = diaperRef.end, end = pickerRef.end)
-
-            },
-            icon = R.drawable.ic_sleep,
-            line1 = "4 hours"
-        )
+    Column(modifier = modifier.width(IntrinsicSize.Min)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Today at a glance",
+                style = MaterialTheme.typography.subtitle1
+            )
+            Icon(
+                imageVector = Icons.Default.ExpandMore,
+                contentDescription = null
+            )
+        }
+        Row(
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            GlanceItem(
+                icon = R.drawable.ic_bottle,
+                line1 = "3 feeds",
+                line2 = "42 mins"
+            )
+            GlanceItem(
+                icon = R.drawable.ic_diaper,
+                line1 = "6 changes",
+                line2 = "4 pee · 3 poo"
+            )
+            GlanceItem(
+                icon = R.drawable.ic_sleep,
+                line1 = "4 hours"
+            )
+        }
     }
 }
 
@@ -80,9 +71,9 @@ fun GlanceItem(
     line2: String? = null
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Icon(painter = painterResource(id = icon), contentDescription = null)
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-            Icon(painter = painterResource(id = icon), contentDescription = null)
-            Column {
+            Column(modifier = Modifier.padding(start = 4.dp)) {
                 Text(text = line1, style = MaterialTheme.typography.caption)
                 if (line2 != null)
                     Text(text = line2, style = MaterialTheme.typography.caption)
@@ -94,7 +85,11 @@ fun GlanceItem(
 @Preview
 @Composable
 private fun PreviewAtAGlance() {
-    MaterialTheme {
-        AtAGlance(modifier = Modifier.fillMaxWidth())
+    LittleOneTheme {
+        AtAGlance(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        )
     }
 }

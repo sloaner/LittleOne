@@ -3,8 +3,7 @@ package com.jsloane.littleone.ui.view.feed
 import android.content.Intent
 
 sealed class FeedAction {
-    object OpenActivityLog : FeedAction()
-    object OpenOnboarding : FeedAction()
+    object OpenSettings : FeedAction()
     class UpdateEmail(val email: String) : FeedAction()
     class UpdatePassword(val password: String) : FeedAction()
     class SignInEmail() : FeedAction()

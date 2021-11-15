@@ -4,4 +4,5 @@
   <!--    Application screens-->
   <string name="screen_login">Login</string>
   <string name="screen_feed">Feed</string>
+  <string name="screen_settings">Settings</string>
 </resources>

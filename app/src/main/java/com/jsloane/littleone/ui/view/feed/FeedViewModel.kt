@@ -3,7 +3,6 @@ package com.jsloane.littleone.ui.view.feed
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jsloane.littleone.base.InvokeStatus
-import com.jsloane.littleone.domain.LOFirestore
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.observers.ObserveAuthState
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
@@ -25,20 +24,17 @@ class FeedViewModel @Inject constructor(
 ) : ViewModel() {
     private val pendingActions = MutableSharedFlow<FeedAction>()
 
-    private val pendingNavigation = MutableStateFlow<FeedAction?>(null)
     private val email = MutableStateFlow("")
     private val password = MutableStateFlow("")
 
     private val loadingState = MutableStateFlow<InvokeStatus>(InvokeStatus.Idle)
 
     val state: StateFlow<FeedViewState> = combine(
-        pendingNavigation,
         observeAuthState.flow,
         email,
         password
-    ) { navigation, authState, email, password ->
+    ) { authState, email, password ->
         FeedViewState(
-            pendingNavigation = navigation,
             email = email,
             password = password
         )
@@ -50,20 +46,6 @@ class FeedViewModel @Inject constructor(
 
     init {
         observeAuthState(UseCase.Params.Empty)
-
-        viewModelScope.launch {
-            observeAuthState.flow.collect {
-                if (it) {
-                    getFamily(UseCase.Params.Empty).collect { user ->
-                        if (LOFirestore.Users.Field.family == null) {
-                            pendingNavigation.emit(FeedAction.OpenOnboarding)
-                        } else {
-                            pendingNavigation.emit(FeedAction.OpenActivityLog)
-                        }
-                    }
-                }
-            }
-        }
 
         viewModelScope.launch {
             pendingActions.collect { action ->

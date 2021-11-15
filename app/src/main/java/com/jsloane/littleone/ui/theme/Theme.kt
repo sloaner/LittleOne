@@ -56,7 +56,7 @@ private val LightColorPalette = lightColors(
     background = Blush,
     onBackground = PurpleDark,
     surface = OffWhite,
-    onSurface = PurpleDark
+    onSurface = DarkText
 )
 
 private val DarkColorPalette = darkColors(

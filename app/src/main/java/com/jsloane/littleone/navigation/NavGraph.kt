@@ -30,7 +30,7 @@ fun LittleOneNavGraph(
     ) {
         composable(Screen.Login.route) {
             LoginScreen(
-                openActivityLog = actions.gotoFeed,
+                openActivityLog = actions.openFeed,
                 openOnboarding = actions.openOnboarding
             )
         }
@@ -40,15 +40,18 @@ fun LittleOneNavGraph(
             deepLinks = listOf(navDeepLink { uriPattern = "$DEEPLINK_BASE/join/{id}" })
         ) {
             OnboardingScreen(
-                openActivityLog = actions.gotoFeed,
+                openActivityLog = actions.openFeed,
                 inviteCode = it.arguments?.getString("id")
             )
         }
 
         composable(Screen.Feed.route) {
             FeedScreen(
-                openOnboarding = actions.openOnboarding
+                openSettings = actions.openSettings
             )
+        }
+
+        composable(Screen.Settings.route) {
         }
     }
 }
@@ -63,7 +66,7 @@ class MainActions(navController: NavHostController) {
         navController.popBackStack()
     }
 
-    val gotoLogin: () -> Unit = {
+    val openLogin: () -> Unit = {
         navController.navigate(
             Screen.Login.route,
             NavOptions.Builder().setPopUpTo(Screen.Login.route, inclusive = true).build()
@@ -77,10 +80,13 @@ class MainActions(navController: NavHostController) {
         )
     }
 
-    val gotoFeed: () -> Unit = {
+    val openFeed: () -> Unit = {
         navController.navigate(
             Screen.Feed.route,
             NavOptions.Builder().setPopUpTo(Screen.Login.route, inclusive = true).build()
         )
+    }
+
+    val openSettings: () -> Unit = {
     }
 }
