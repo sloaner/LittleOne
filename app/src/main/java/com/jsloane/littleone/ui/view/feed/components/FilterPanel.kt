@@ -4,6 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
 import androidx.compose.material.Divider
@@ -22,54 +24,60 @@ import androidx.compose.material.primarySurface
 import androidx.compose.material.rememberBackdropScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.components.ChipGroup
 import com.jsloane.littleone.ui.components.OutlinedFilterChip
 import com.jsloane.littleone.ui.theme.LittleOneTheme
-import kotlin.random.Random
+
+data class FilterState(val type: ActivityType, var selected: Boolean = false)
 
 @Composable
 fun FilterPanel(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colors.primarySurface,
-    contentColor: Color = MaterialTheme.colors.contentColorFor(backgroundColor)
+    contentColor: Color = MaterialTheme.colors.contentColorFor(backgroundColor),
+    filters: List<ActivityType>,
+    filtersChanged: (List<ActivityType>) -> Unit
 ) {
-    Column {
-        FilterGroup(
-            header = "Feeding",
-            filters = mapOf(
-                ActivityType.LEFT_BREAST to Random.nextBoolean(),
-                ActivityType.RIGHT_BREAST to Random.nextBoolean(),
-                ActivityType.BOTTLE to Random.nextBoolean(),
-                ActivityType.MEAL to Random.nextBoolean()
+
+    val groupedFilters = remember {
+        mutableStateMapOf<ActivityType.Category, List<FilterState>>().apply {
+            filters
+                .map { FilterState(it, false) }
+                .groupBy { it.type.category }
+                .also {
+                    putAll(it)
+                }
+        }
+    }
+
+    LazyColumn(modifier = modifier) {
+        items(groupedFilters.keys.toList()) { group ->
+            FilterGroup(
+                header = group.name,
+                filters = groupedFilters[group]!!,
+                backgroundColor = backgroundColor,
+                contentColor = contentColor,
+                onClick = { type ->
+                    val index = groupedFilters[group]?.indexOfFirst { it.type == type } ?: 0
+                    groupedFilters[group] = groupedFilters[group]!!.toMutableList().apply {
+                        this[index].selected = !this[index].selected
+                    }
+                    filtersChanged(
+                        groupedFilters
+                            .flatMap { it.value }
+                            .filter { it.selected }
+                            .map { it.type }
+                    )
+                }
             )
-        )
-        FilterGroup(
-            header = "Diapering",
-            filters = mapOf(
-                ActivityType.PEE to Random.nextBoolean(),
-                ActivityType.POOP to Random.nextBoolean()
-            )
-        )
-        FilterGroup(
-            header = "Sleep",
-            filters = mapOf(
-                ActivityType.SLEEP to Random.nextBoolean()
-            )
-        )
-        FilterGroup(
-            header = "Leisure",
-            filters = mapOf(
-                ActivityType.TUMMY_TIME to Random.nextBoolean(),
-                ActivityType.PLAY to Random.nextBoolean(),
-                ActivityType.OUTDOORS to Random.nextBoolean(),
-                ActivityType.BATH to Random.nextBoolean(),
-                ActivityType.TV to Random.nextBoolean()
-            )
-        )
+        }
     }
 }
 
@@ -79,7 +87,8 @@ fun FilterGroup(
     backgroundColor: Color = MaterialTheme.colors.primarySurface,
     contentColor: Color = MaterialTheme.colors.contentColorFor(backgroundColor),
     header: String?,
-    filters: Map<ActivityType, Boolean>
+    filters: List<FilterState>,
+    onClick: (ActivityType) -> Unit
 ) {
     Column {
         CompositionLocalProvider(LocalContentColor provides contentColor) {
@@ -105,7 +114,11 @@ fun FilterGroup(
                     .padding(start = 20.dp, end = 10.dp, bottom = 16.dp)
             ) {
                 filters.forEach {
-                    OutlinedFilterChip(text = it.key.title, selected = it.value)
+                    OutlinedFilterChip(
+                        text = it.type.title,
+                        selected = it.selected,
+                        onClick = { onClick(it.type) }
+                    )
                 }
             }
         }
@@ -140,7 +153,7 @@ private fun PreviewPanel() {
             },
             backLayerBackgroundColor = MaterialTheme.colors.primarySurface,
             backLayerContent = {
-                FilterPanel()
+                FilterPanel(filters = ActivityType.values().toList(), filtersChanged = {})
             },
             frontLayerBackgroundColor = MaterialTheme.colors.surface,
             frontLayerContent = {}

@@ -1,7 +1,6 @@
 package com.jsloane.littleone.ui.view.feed
 
 import android.content.res.Configuration
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,7 +13,6 @@ import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.ListItem
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
@@ -43,9 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jsloane.littleone.R
+import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.ui.view.feed.components.ActivityLog
 import com.jsloane.littleone.ui.view.feed.components.AtAGlance
+import com.jsloane.littleone.ui.view.feed.components.FilterPanel
 import com.jsloane.littleone.util.rememberFlowWithLifecycle
 import kotlinx.coroutines.launch
 
@@ -120,17 +120,12 @@ internal fun FeedScreen(
         },
         backLayerBackgroundColor = MaterialTheme.colors.primarySurface,
         backLayerContent = {
-            LazyColumn {
-                items(if (selection.value >= 3) 3 else 5) {
-                    ListItem(
-                        Modifier.clickable {
-                            selection.value = it
-                            scope.launch { backdropState.conceal() }
-                        },
-                        text = { Text("Select $it") }
-                    )
+            FilterPanel(
+                filters = ActivityType.values().toList(),
+                filtersChanged = {
+
                 }
-            }
+            )
         },
         frontLayerBackgroundColor = MaterialTheme.colors.surface,
         frontLayerContent = {

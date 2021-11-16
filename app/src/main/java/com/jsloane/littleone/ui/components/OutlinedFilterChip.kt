@@ -1,13 +1,14 @@
 package com.jsloane.littleone.ui.components
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -36,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.jsloane.littleone.R
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun OutlinedFilterChip(
     modifier: Modifier = Modifier,
@@ -69,39 +70,35 @@ fun OutlinedFilterChip(
         shape = RoundedCornerShape(50)
     ) {
         Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
-            if (thumbnailIcon == null && !selected) {
-                Spacer(Modifier.size(12.dp))
-            } else {
-                Box(
-                    modifier = Modifier.padding(start = 4.dp, end = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (thumbnailIcon != null) {
-                        Surface(
-                            color = Color.Transparent,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(4.dp)
-                                .clip(CircleShape)
-                                .alpha(
-                                    when {
-                                        enabled || selected -> ContentAlpha.high
-                                        else -> ContentAlpha.disabled
-                                    }
-                                )
-                        ) {
-                            thumbnailIcon()
-                        }
+            Box(
+                modifier = Modifier.padding(start = 4.dp, end = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (thumbnailIcon != null) {
+                    Surface(
+                        color = Color.Transparent,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(4.dp)
+                            .clip(CircleShape)
+                            .alpha(
+                                when {
+                                    enabled || selected -> ContentAlpha.high
+                                    else -> ContentAlpha.disabled
+                                }
+                            )
+                    ) {
+                        thumbnailIcon()
                     }
-                    if (selected) {
-                        Icon(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(4.dp),
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null
-                        )
-                    }
+                }
+                this@Row.AnimatedVisibility(visible = selected) {
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(4.dp),
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null
+                    )
                 }
             }
             Text(

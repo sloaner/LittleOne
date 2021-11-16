@@ -1,6 +1,5 @@
 package com.jsloane.littleone.ui.view.feed.components
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
@@ -37,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
-import com.jsloane.littleone.R
+import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.util.RelativeTimeFormatter
 import java.time.Duration
@@ -47,21 +46,6 @@ import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
 val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a").withZone(ZoneId.systemDefault())
-
-enum class ActivityType(val title: String, val category: String, @DrawableRes val icon: Int) {
-    LEFT_BREAST("Left Breast", "Feeding", R.drawable.ic_breast_left),
-    RIGHT_BREAST("Right Breast", "Feeding", R.drawable.ic_breast_right),
-    BOTTLE("Bottle", "Feeding", R.drawable.ic_bottle),
-    MEAL("Meal", "Feeding", R.drawable.ic_meal),
-    PEE("Pee", "Diaper", R.drawable.ic_pee),
-    POOP("Poop", "Diaper", R.drawable.ic_poop),
-    TUMMY_TIME("Tummy Time", "Leisure", R.drawable.ic_tummy_time),
-    PLAY("Play", "Leisure", R.drawable.ic_play),
-    OUTDOORS("Outdoors", "Leisure", R.drawable.ic_outdoors),
-    BATH("Bath", "Leisure", R.drawable.ic_bath),
-    TV("TV", "Leisure", R.drawable.ic_tv),
-    SLEEP("Sleep", "Sleep", R.drawable.ic_sleep)
-}
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
