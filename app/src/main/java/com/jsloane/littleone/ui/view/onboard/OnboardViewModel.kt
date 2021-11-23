@@ -3,8 +3,11 @@ package com.jsloane.littleone.ui.view.onboard
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jsloane.littleone.base.InvokeStatus
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.usecases.CreateChildUseCase
+import com.jsloane.littleone.domain.usecases.CreateFamilyUseCase
 import com.jsloane.littleone.domain.usecases.JoinFamilyByInviteCodeUseCase
 import com.jsloane.littleone.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +24,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class OnboardViewModel @Inject constructor(
+    private val createFamilyUseCase: CreateFamilyUseCase,
     private val createChildUseCase: CreateChildUseCase,
     private val joinFamilyByInviteCodeUseCase: JoinFamilyByInviteCodeUseCase
 ) : ViewModel() {
@@ -31,7 +35,7 @@ class OnboardViewModel @Inject constructor(
     val inviteCode = MutableStateFlow("")
     val navigateTo = MutableStateFlow<Screen?>(null)
 
-    private val loadingState = MutableStateFlow<InvokeStatus>(InvokeStatus.Idle)
+    private val loadingState = MutableStateFlow<Result<Unit>>(Result.Loading())
 
     val state: StateFlow<OnboardViewState> = combine(
         babyName,
@@ -71,35 +75,49 @@ class OnboardViewModel @Inject constructor(
 
     private fun registerNewFamily(name: String, birthday: LocalDate) = viewModelScope.launch {
         try {
-            loadingState.emit(InvokeStatus.Started)
-
-            createChildUseCase(
-                CreateChildUseCase.Params(name = name, birthday = birthday)
+            var familyId: String? = null
+            createFamilyUseCase(
+                CreateFamilyUseCase.Params(Firebase.auth.currentUser?.uid.orEmpty())
             ).collect {
-                Log.d("I", it?.id ?: "null")
-                navigateTo.emit(Screen.Feed)
+                when (it) {
+                    is Result.Error -> TODO()
+                    is Result.Loading -> loadingState.emit(Result.Loading())
+                    is Result.Success -> familyId = it.data
+                }
             }
-
-            loadingState.emit(InvokeStatus.Success)
+            createChildUseCase(
+                CreateChildUseCase.Params(
+                    name = name,
+                    birthday = birthday,
+                    family_id = familyId.orEmpty()
+                )
+            ).collect {
+                when (it) {
+                    is Result.Error -> loadingState.emit(Result.Error(it.message))
+                    is Result.Loading -> TODO()
+                    is Result.Success -> {
+                        navigateTo.emit(Screen.Feed)
+                    }
+                }
+            }
         } catch (e: Exception) {
-            loadingState.emit(InvokeStatus.Error(e))
         }
     }
 
     private fun joinFamily(code: String) = viewModelScope.launch {
         try {
-            loadingState.emit(InvokeStatus.Started)
+            loadingState.emit(Result.Loading())
 
             joinFamilyByInviteCodeUseCase(
-                JoinFamilyByInviteCodeUseCase.Params(inviteCode = code)
+                JoinFamilyByInviteCodeUseCase.Params(
+                    inviteCode = code,
+                    userId = Firebase.auth.currentUser?.uid.orEmpty()
+                )
             ).collect {
                 Log.d("I", "$it")
                 navigateTo.emit(Screen.Feed)
             }
-
-            loadingState.emit(InvokeStatus.Success)
         } catch (e: Exception) {
-            loadingState.emit(InvokeStatus.Error(e))
         }
     }
 

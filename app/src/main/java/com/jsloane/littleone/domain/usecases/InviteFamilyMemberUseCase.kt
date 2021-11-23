@@ -1,44 +1,27 @@
 package com.jsloane.littleone.domain.usecases
 
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import com.jsloane.littleone.base.AppCoroutineDispatchers
-import com.jsloane.littleone.domain.LOFirestore
+import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
+import com.jsloane.littleone.domain.repository.LittleOneRepository
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import javax.inject.Inject
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.lastOrNull
 
-class InviteFamilyMemberUseCase @Inject constructor() :
-    ResultUseCase<InviteFamilyMemberUseCase.Params, Boolean>() {
-    override suspend fun doWork(params: Params): Boolean =
-        withContext(AppCoroutineDispatchers.io) {
-            val inviteCode = findValidInviteCode()
+class InviteFamilyMemberUseCase @Inject constructor(
+    private val repository: LittleOneRepository
+) : ResultUseCase<InviteFamilyMemberUseCase.Params, Flow<Result<Unit>>>() {
 
-            Firebase.firestore
-                .collection(LOFirestore.Family.id)
-                .document(params.family_id)
-                .update(
-                    mapOf(
-                        LOFirestore.Family.Field.inviteCode.name to
-                            inviteCode,
-                        LOFirestore.Family.Field.inviteExpiration.name to
-                            Timestamp(
-                                LocalDateTime.now()
-                                    .plusDays(1)
-                                    .toEpochSecond(ZoneOffset.UTC),
-                                0
-                            )
-                    )
-                ).await()
-
-            return@withContext true
-        }
+    override suspend fun doWork(params: Params): Flow<Result<Unit>> {
+        val inviteCode = findValidInviteCode()
+        return repository.createFamilyInvite(
+            familyId = params.family_id,
+            inviteCode = inviteCode,
+            inviteExpiration = LocalDateTime.now().plusDays(1L)
+        )
+    }
 
     private suspend fun findValidInviteCode(): String {
         val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
@@ -46,19 +29,9 @@ class InviteFamilyMemberUseCase @Inject constructor() :
 
         do {
             val inviteCode = (1..6).map { allowedChars.random() }.joinToString("")
-            val codeResults = Firebase.firestore
-                .collection(LOFirestore.Family.id)
-                .whereEqualTo(
-                    LOFirestore.Family.Field.inviteCode.name,
-                    inviteCode
-                )
-                .whereGreaterThanOrEqualTo(
-                    LOFirestore.Family.Field.inviteExpiration.name,
-                    Timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), 0)
-                )
-                .get()
-                .await()
-            if (codeResults.isEmpty)
+            val codeResults = repository.findFamilyByInvite(inviteCode).lastOrNull()
+
+            if (codeResults == null)
                 return inviteCode
             else
                 i += 1

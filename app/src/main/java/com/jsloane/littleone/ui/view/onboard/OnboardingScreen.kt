@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,6 +67,10 @@ fun OnboardingScreen(
     val viewState by rememberFlowWithLifecycle(viewModel.state)
         .collectAsState(initial = OnboardViewState.Empty)
     val scope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.navigateTo
+    }
 
     OnboardingScreen(
         viewState = viewState,

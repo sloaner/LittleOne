@@ -1,6 +1,7 @@
 package com.jsloane.littleone.ui.view.feed.components
 
 import android.content.res.Configuration
+import android.provider.SyncStateContract
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -58,10 +59,10 @@ fun FilterPanel(
     }
 
     LazyColumn(modifier = modifier) {
-        items(groupedFilters.keys.toList()) { group ->
+        items(groupedFilters.keys.sortedBy { it.order }.toList()) { group ->
             FilterGroup(
                 header = group.name,
-                filters = groupedFilters[group]!!,
+                filters = groupedFilters[group]?.sortedBy { it.type.order }.orEmpty(),
                 backgroundColor = backgroundColor,
                 contentColor = contentColor,
                 onClick = { type ->

@@ -1,6 +1,6 @@
 package com.jsloane.littleone.domain
 
-import com.jsloane.littleone.base.InvokeStatus
+import com.jsloane.littleone.base.Result
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
@@ -13,15 +13,15 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withTimeout
 
 abstract class UseCase<in P : UseCase.Params> {
-    operator fun invoke(params: P, timeoutMs: Long = defaultTimeoutMs): Flow<InvokeStatus> {
+    operator fun invoke(params: P, timeoutMs: Long = defaultTimeoutMs): Flow<Result<Unit>> {
         return flow {
             withTimeout(timeoutMs) {
-                emit(InvokeStatus.Started)
+                emit(Result.Loading())
                 doWork(params)
-                emit(InvokeStatus.Success)
+                emit(Result.Success(Unit))
             }
         }.catch { t ->
-            emit(InvokeStatus.Error(t))
+            emit(Result.Error(t.message.orEmpty()))
         }
     }
 
@@ -60,7 +60,7 @@ abstract class ObservableUseCase<in P : UseCase.Params, T> {
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val flow: Flow<T> = paramState
+    val flow: Flow<Result<T>> = paramState
         .distinctUntilChanged()
         .flatMapLatest { createObservable(it) }
         .distinctUntilChanged()
@@ -69,5 +69,5 @@ abstract class ObservableUseCase<in P : UseCase.Params, T> {
         paramState.tryEmit(params)
     }
 
-    protected abstract fun createObservable(params: P): Flow<T>
+    protected abstract fun createObservable(params: P): Flow<Result<T>>
 }

@@ -1,33 +1,22 @@
 package com.jsloane.littleone.domain.usecases
 
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import com.jsloane.littleone.base.AppCoroutineDispatchers
-import com.jsloane.littleone.data.entities.Family
-import com.jsloane.littleone.domain.LOFirestore
+import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
+import com.jsloane.littleone.domain.model.Family
+import com.jsloane.littleone.domain.repository.LittleOneRepository
 import javax.inject.Inject
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.Flow
 
-class GetFamilyUseCase @Inject constructor() : ResultUseCase<UseCase.Params.Empty, Family?>() {
-    override suspend fun doWork(params: UseCase.Params.Empty): Family? =
-        withContext(AppCoroutineDispatchers.io) {
-            val userRef = Firebase.firestore
-                .collection(LOFirestore.Users.id)
-                .document(Firebase.auth.currentUser?.uid.orEmpty())
+class GetFamilyUseCase @Inject constructor(
+    private val repository: LittleOneRepository
+) : ResultUseCase<GetFamilyUseCase.Params, Flow<Result<Family>>>() {
 
-            val familyDoc = Firebase.firestore
-                .collection(LOFirestore.Family.id)
-                .whereArrayContains(
-                    LOFirestore.Family.Field.users.name,
-                    userRef
-                )
-                .limit(1)
-                .get().await()
+    override suspend fun doWork(params: Params): Flow<Result<Family>> {
+        return repository.findFamily(params.user_id)
+    }
 
-            familyDoc.documents.firstOrNull()?.toObject(Family::class.java)
-        }
+    data class Params(
+        val user_id: String
+    ) : UseCase.Params
 }

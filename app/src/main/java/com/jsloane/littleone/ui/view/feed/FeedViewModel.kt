@@ -2,9 +2,8 @@ package com.jsloane.littleone.ui.view.feed
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.jsloane.littleone.base.InvokeStatus
 import com.jsloane.littleone.domain.UseCase
-import com.jsloane.littleone.domain.observers.ObserveAuthState
+import com.jsloane.littleone.domain.observers.AuthStateObserver
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -19,7 +18,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    observeAuthState: ObserveAuthState,
+    authStateObserver: AuthStateObserver,
     getFamily: GetFamilyUseCase
 ) : ViewModel() {
     private val pendingActions = MutableSharedFlow<FeedAction>()
@@ -27,10 +26,8 @@ class FeedViewModel @Inject constructor(
     private val email = MutableStateFlow("")
     private val password = MutableStateFlow("")
 
-    private val loadingState = MutableStateFlow<InvokeStatus>(InvokeStatus.Idle)
-
     val state: StateFlow<FeedViewState> = combine(
-        observeAuthState.flow,
+        authStateObserver.flow,
         email,
         password
     ) { authState, email, password ->
@@ -45,7 +42,7 @@ class FeedViewModel @Inject constructor(
     )
 
     init {
-        observeAuthState(UseCase.Params.Empty)
+        authStateObserver(UseCase.Params.Empty)
 
         viewModelScope.launch {
             pendingActions.collect { action ->

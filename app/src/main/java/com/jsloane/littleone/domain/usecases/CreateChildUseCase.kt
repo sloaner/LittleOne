@@ -1,55 +1,32 @@
 package com.jsloane.littleone.domain.usecases
 
-import com.google.firebase.Timestamp
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import com.jsloane.littleone.base.AppCoroutineDispatchers
-import com.jsloane.littleone.data.entities.Child
-import com.jsloane.littleone.domain.LOFirestore
+import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
+import com.jsloane.littleone.domain.repository.LittleOneRepository
 import java.time.LocalDate
-import java.time.ZoneId
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.lastOrNull
 
 class CreateChildUseCase @Inject constructor(
-    private val createFamilyUseCase: CreateFamilyUseCase
-) :
-    ResultUseCase<CreateChildUseCase.Params, Child?>() {
-    override suspend fun doWork(params: Params): Child? =
-        withContext(AppCoroutineDispatchers.io) {
-            val familyId = params.family_id
-                ?: createFamilyUseCase(UseCase.Params.Empty).first()?.id
-                ?: return@withContext null
+    private val repository: LittleOneRepository
+) : ResultUseCase<CreateChildUseCase.Params, Result<Unit>>() {
+    override suspend fun doWork(params: Params): Result<Unit> {
+        val family = repository.getFamily(params.family_id).lastOrNull()
 
-            val familyRef = Firebase.firestore
-                .collection(LOFirestore.Family.id)
-                .document(familyId)
-
-            val childRef = familyRef
-                .collection(LOFirestore.Child.id)
-                .add(
-                    Child(
-                        name = params.name,
-                        birthday = Timestamp(
-                            params.birthday
-                                .atStartOfDay(ZoneId.systemDefault())
-                                .toEpochSecond(),
-                            0
-                        )
-                    )
-                )
-                .await()
-
-            val childDoc = childRef.get().await()
-            return@withContext childDoc.toObject(Child::class.java)
+        when (family) {
+            is Result.Error -> return Result.Error("")
+            is Result.Loading -> return Result.Error("")
+            else -> {}
         }
 
+        repository.createChild(params.family_id, params.name, params.birthday)
+
+        return Result.Success(Unit)
+    }
+
     data class Params(
-        val family_id: String? = null,
+        val family_id: String,
         val name: String,
         val birthday: LocalDate
     ) : UseCase.Params

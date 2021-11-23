@@ -1,6 +1,7 @@
 package com.jsloane.littleone.ui.view.feed
 
 import android.content.res.Configuration
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -84,23 +85,26 @@ internal fun FeedScreen(
 
     BackdropScaffold(
         scaffoldState = backdropState,
+        gesturesEnabled = false,
         appBar = {
             TopAppBar(
                 title = { Text("Backdrop scaffold") },
                 navigationIcon = {
-                    if (backdropState.isConcealed) {
-                        IconButton(onClick = { scope.launch { backdropState.reveal() } }) {
-                            Icon(
-                                Icons.Default.Tune,
-                                contentDescription = "Show filters"
-                            )
-                        }
-                    } else {
-                        IconButton(onClick = { scope.launch { backdropState.conceal() } }) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Close filters"
-                            )
+                    Crossfade(targetState = backdropState.isConcealed) {
+                        if (it) {
+                            IconButton(onClick = { scope.launch { backdropState.reveal() } }) {
+                                Icon(
+                                    Icons.Default.Tune,
+                                    contentDescription = "Show filters"
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { scope.launch { backdropState.conceal() } }) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Close filters"
+                                )
+                            }
                         }
                     }
                 },
@@ -123,7 +127,6 @@ internal fun FeedScreen(
             FilterPanel(
                 filters = ActivityType.values().toList(),
                 filtersChanged = {
-
                 }
             )
         },
@@ -132,7 +135,11 @@ internal fun FeedScreen(
             ModalBottomSheetLayout(
                 sheetState = sheetState,
                 sheetContent = {
-                    LazyColumn() {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
                         items(50) { index ->
                             Text(text = "Add $index")
                         }

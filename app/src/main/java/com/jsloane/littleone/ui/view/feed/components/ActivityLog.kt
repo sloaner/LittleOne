@@ -6,6 +6,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -225,7 +226,8 @@ fun TimelineMarker(modifier: Modifier, content: @Composable () -> Unit) {
 fun ActivityLog(modifier: Modifier = Modifier) {
     var expanded: Int by remember { mutableStateOf(3) }
 
-    LazyColumn(modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp)) {
+    LazyColumn(modifier = Modifier.padding(vertical = 0.dp, horizontal = 8.dp)) {
+        item { Spacer(modifier = Modifier.size(8.dp)) }
         itemsIndexed(ActivityType.values()) { index, activityType ->
 
             ActivityItemConnected(

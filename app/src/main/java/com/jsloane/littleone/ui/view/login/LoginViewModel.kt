@@ -7,9 +7,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.jsloane.littleone.base.InvokeStatus
+import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.UseCase
-import com.jsloane.littleone.domain.observers.ObserveAuthState
+import com.jsloane.littleone.domain.observers.AuthStateObserver
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -25,7 +25,7 @@ import kotlinx.coroutines.tasks.await
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    observeAuthState: ObserveAuthState,
+    authStateObserver: AuthStateObserver,
     getFamily: GetFamilyUseCase
 ) : ViewModel() {
     private val pendingActions = MutableSharedFlow<LoginAction>()
@@ -34,11 +34,11 @@ class LoginViewModel @Inject constructor(
     private val email = MutableStateFlow("")
     private val password = MutableStateFlow("")
 
-    private val loadingState = MutableStateFlow<InvokeStatus>(InvokeStatus.Idle)
+    private val loadingState = MutableStateFlow<Result<Unit>>(Result.Loading())
 
     val state: StateFlow<LoginViewState> = combine(
         pendingNavigation,
-        observeAuthState.flow,
+        authStateObserver.flow,
         email,
         password
     ) { navigation, authState, email, password ->
@@ -54,16 +54,24 @@ class LoginViewModel @Inject constructor(
     )
 
     init {
-        observeAuthState(UseCase.Params.Empty)
+        authStateObserver(UseCase.Params.Empty)
 
         viewModelScope.launch {
-            observeAuthState.flow.collect {
-                if (it) {
-                    getFamily(UseCase.Params.Empty).collect { family ->
-                        if (family == null) {
-                            pendingNavigation.emit(LoginAction.OpenOnboarding)
-                        } else {
-                            pendingNavigation.emit(LoginAction.OpenActivityLog)
+            authStateObserver.flow.collect {
+                when (it) {
+                    is Result.Error -> TODO()
+                    is Result.Loading -> TODO()
+                    is Result.Success -> if (it.data) {
+                        getFamily(
+                            GetFamilyUseCase.Params(
+                                user_id = Firebase.auth.currentUser?.uid.orEmpty()
+                            )
+                        ).collect { family ->
+                            if (family == null) {
+                                pendingNavigation.emit(LoginAction.OpenOnboarding)
+                            } else {
+                                pendingNavigation.emit(LoginAction.OpenActivityLog)
+                            }
                         }
                     }
                 }
@@ -90,19 +98,19 @@ class LoginViewModel @Inject constructor(
     private fun signInWithEmailAndPassword(email: String, password: String) =
         viewModelScope.launch {
             try {
-                loadingState.emit(InvokeStatus.Started)
+                loadingState.emit(Result.Loading())
 
                 Firebase.auth.signInWithEmailAndPassword(email, password).await()
 
-                loadingState.emit(InvokeStatus.Success)
+                loadingState.emit(Result.Success(Unit))
             } catch (e: Exception) {
-                loadingState.emit(InvokeStatus.Error(e))
+                loadingState.emit(Result.Error(e.message.orEmpty()))
             }
         }
 
     private fun signInWithCredentials(intent: Intent) = viewModelScope.launch {
         try {
-            loadingState.emit(InvokeStatus.Started)
+            loadingState.emit(Result.Loading())
 
             val task = GoogleSignIn.getSignedInAccountFromIntent(intent)
             val account = task.result
@@ -110,9 +118,9 @@ class LoginViewModel @Inject constructor(
 
             Firebase.auth.signInWithCredential(credential).await()
 
-            loadingState.emit(InvokeStatus.Success)
+            loadingState.emit(Result.Success(Unit))
         } catch (e: Exception) {
-            loadingState.emit(InvokeStatus.Error(e))
+            loadingState.emit(Result.Error(e.message.orEmpty()))
         }
     }
 

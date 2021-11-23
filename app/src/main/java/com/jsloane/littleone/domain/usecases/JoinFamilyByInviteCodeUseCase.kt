@@ -1,64 +1,46 @@
 package com.jsloane.littleone.domain.usecases
 
-import com.google.firebase.Timestamp
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestoreException
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.AppCoroutineDispatchers
-import com.jsloane.littleone.domain.LOFirestore
+import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import com.jsloane.littleone.domain.repository.LittleOneRepository
 import javax.inject.Inject
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.withContext
 
-class JoinFamilyByInviteCodeUseCase @Inject constructor() :
-    ResultUseCase<JoinFamilyByInviteCodeUseCase.Params, Boolean>() {
-    override suspend fun doWork(params: Params): Boolean =
+class JoinFamilyByInviteCodeUseCase @Inject constructor(
+    private val repository: LittleOneRepository
+) :
+    ResultUseCase<JoinFamilyByInviteCodeUseCase.Params, Result<Unit>>() {
+    override suspend fun doWork(params: Params): Result<Unit> =
         withContext(AppCoroutineDispatchers.io) {
-            val userId = Firebase.auth.currentUser?.uid
-
-            if (userId.isNullOrBlank())
+            if (params.userId.isNullOrBlank())
                 throw FirebaseFirestoreException(
                     "UNAUTHORIZED",
                     FirebaseFirestoreException.Code.UNAUTHENTICATED
                 )
 
-            val inviteFamilyDoc = Firebase.firestore
-                .collection(LOFirestore.Family.id)
-                .whereEqualTo(
-                    LOFirestore.Family.Field.inviteCode.name,
-                    params.inviteCode
-                )
-                .whereGreaterThanOrEqualTo(
-                    LOFirestore.Family.Field.inviteExpiration.name,
-                    Timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), 0)
-                )
-                .get()
-                .await()
-
-            if (inviteFamilyDoc.documents.size == 0)
-                throw FirebaseFirestoreException(
-                    "NOT_FOUND",
-                    FirebaseFirestoreException.Code.NOT_FOUND
-                )
-            if (inviteFamilyDoc.documents.size > 1)
-                throw FirebaseFirestoreException(
-                    "INVITE_CODE_COLLISION",
-                    FirebaseFirestoreException.Code.FAILED_PRECONDITION
-                )
-
-            inviteFamilyDoc.documents.first().reference.update(
-                LOFirestore.Family.Field.users.name,
-                FieldValue.arrayUnion(userId)
-            ).await()
-
-            return@withContext true
+            repository.findFamilyByInvite(params.inviteCode).collect {
+                when (it) {
+                    is Result.Error ->
+                        throw FirebaseFirestoreException(
+                            "NOT_FOUND",
+                            FirebaseFirestoreException.Code.NOT_FOUND
+                        )
+                    is Result.Loading -> {}
+                    is Result.Success -> repository.updateFamilyUsers(
+                        it.data?.id.orEmpty(),
+                        params.userId
+                    )
+                }
+            }
+            return@withContext Result.Success(Unit)
         }
 
-    data class Params(val inviteCode: String) : UseCase.Params
+    data class Params(
+        val userId: String?,
+        val inviteCode: String
+    ) : UseCase.Params
 }
