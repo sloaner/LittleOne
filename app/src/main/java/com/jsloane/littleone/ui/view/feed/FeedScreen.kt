@@ -32,8 +32,6 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.jsloane.littleone.R
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
+import com.jsloane.littleone.ui.view.feed.components.ActivityFilterState
 import com.jsloane.littleone.ui.view.feed.components.ActivityLog
 import com.jsloane.littleone.ui.view.feed.components.AtAGlance
 import com.jsloane.littleone.ui.view.feed.components.FilterPanel
@@ -81,7 +80,6 @@ internal fun FeedScreen(
     val scaffoldState = rememberScaffoldState()
     val backdropState = rememberBackdropScaffoldState(initialValue = BackdropValue.Concealed)
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
-    val selection = remember { mutableStateOf(1) }
 
     BackdropScaffold(
         scaffoldState = backdropState,
@@ -125,8 +123,9 @@ internal fun FeedScreen(
         backLayerBackgroundColor = MaterialTheme.colors.primarySurface,
         backLayerContent = {
             FilterPanel(
-                filters = ActivityType.values().toList(),
+                filters = ActivityType.values().map { ActivityFilterState(it, false) },
                 filtersChanged = {
+                    actions(FeedAction.UpdateSelectedFilters(it))
                 }
             )
         },
@@ -165,7 +164,7 @@ internal fun FeedScreen(
                                 .padding(horizontal = 24.dp, vertical = 16.dp)
                         )
                         Divider()
-                        ActivityLog()
+                        ActivityLog(items = viewState.groupedActivities)
                     }
                 }
             }

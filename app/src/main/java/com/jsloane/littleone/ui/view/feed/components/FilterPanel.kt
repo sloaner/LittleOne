@@ -1,7 +1,6 @@
 package com.jsloane.littleone.ui.view.feed.components
 
 import android.content.res.Configuration
-import android.provider.SyncStateContract
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -36,21 +35,20 @@ import com.jsloane.littleone.ui.components.ChipGroup
 import com.jsloane.littleone.ui.components.OutlinedFilterChip
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 
-data class FilterState(val type: ActivityType, var selected: Boolean = false)
+data class ActivityFilterState(val type: ActivityType, var selected: Boolean = false)
 
 @Composable
 fun FilterPanel(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colors.primarySurface,
     contentColor: Color = MaterialTheme.colors.contentColorFor(backgroundColor),
-    filters: List<ActivityType>,
+    filters: List<ActivityFilterState>,
     filtersChanged: (List<ActivityType>) -> Unit
 ) {
 
     val groupedFilters = remember {
-        mutableStateMapOf<ActivityType.Category, List<FilterState>>().apply {
+        mutableStateMapOf<ActivityType.Category, List<ActivityFilterState>>().apply {
             filters
-                .map { FilterState(it, false) }
                 .groupBy { it.type.category }
                 .also {
                     putAll(it)
@@ -88,7 +86,7 @@ fun FilterGroup(
     backgroundColor: Color = MaterialTheme.colors.primarySurface,
     contentColor: Color = MaterialTheme.colors.contentColorFor(backgroundColor),
     header: String?,
-    filters: List<FilterState>,
+    filters: List<ActivityFilterState>,
     onClick: (ActivityType) -> Unit
 ) {
     Column {
@@ -154,7 +152,10 @@ private fun PreviewPanel() {
             },
             backLayerBackgroundColor = MaterialTheme.colors.primarySurface,
             backLayerContent = {
-                FilterPanel(filters = ActivityType.values().toList(), filtersChanged = {})
+                FilterPanel(
+                    filters = ActivityType.values().map { ActivityFilterState(it, false) },
+                    filtersChanged = {}
+                )
             },
             frontLayerBackgroundColor = MaterialTheme.colors.surface,
             frontLayerContent = {}

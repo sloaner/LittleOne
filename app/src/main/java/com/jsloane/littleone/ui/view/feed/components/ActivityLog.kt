@@ -1,9 +1,9 @@
 package com.jsloane.littleone.ui.view.feed.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +22,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -34,97 +35,55 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ChainStyle
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.util.RelativeTimeFormatter
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
 val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a").withZone(ZoneId.systemDefault())
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun ActivityItem(
+fun ActivityLog(
     modifier: Modifier = Modifier,
-    lastItem: Boolean = false,
-    activity: ActivityType,
-    time: Instant,
-    duration: Duration,
-    description: String
+    items: Map<LocalDate, List<Activity>>
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    val elevationProgress: Float by animateFloatAsState(if (expanded) 2f else 0f)
+    var expanded: Int by remember { mutableStateOf(3) }
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 0.dp, bottom = elevationProgress.dp),
-        onClick = { expanded = !expanded },
-        elevation = elevationProgress.dp
-    ) {
-        ConstraintLayout(modifier = Modifier.padding(vertical = 2.dp, horizontal = 16.dp)) {
-            val (timeRef, iconRef, descRef, dividerRef) = createRefs()
-            createHorizontalChain(timeRef, iconRef, descRef, chainStyle = ChainStyle.Packed)
-
-            Text(
-                modifier = Modifier.constrainAs(timeRef) {
-                    linkTo(start = parent.start, end = iconRef.start, bias = 0f)
-
-                    centerVerticallyTo(iconRef)
-                },
-                text = timeFormatter.format(time).lowercase(),
-                style = MaterialTheme.typography.caption
-            )
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .size(24.dp)
-                    .background(
-                        color = MaterialTheme.colors.secondary,
-                        shape = CircleShape
-                    )
-                    .padding(4.dp)
-                    .constrainAs(iconRef) {
-                        top.linkTo(parent.top)
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(painterResource(id = activity.icon), null)
+    LazyColumn(modifier = modifier.padding(vertical = 0.dp, horizontal = 8.dp)) {
+        item { Spacer(modifier = Modifier.size(8.dp)) }
+        items.forEach { (date, list) ->
+            stickyHeader {
+                DateHeader(date = date)
             }
-            AnimatedVisibility(
-                visible = !lastItem && !expanded,
-                modifier = Modifier.constrainAs(dividerRef) {
-                    top.linkTo(iconRef.bottom, 4.dp)
-                    centerHorizontallyTo(iconRef)
-                }
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(1.dp, 8.dp)
-                        .background(color = MaterialTheme.colors.secondary)
+            itemsIndexed(list) { index, activity ->
+                ActivityItem(
+                    expanded = expanded == index,
+                    firstItem = index <= 0,
+                    lastItem = index >= list.lastIndex,
+                    time = activity.start_time.atZone(ZoneId.systemDefault()).toInstant(),
+                    duration = activity.duration,
+                    activity = activity.type,
+                    description = activity.type.name,
+                    onClick = { expanded = if (expanded == index) -1 else index }
                 )
             }
-            Text(
-                modifier = Modifier.constrainAs(descRef) {
-                    end.linkTo(parent.end)
-                    centerVerticallyTo(iconRef)
-                },
-                text = "${duration.toMinutes()}m, $description",
-                style = MaterialTheme.typography.body2
-            )
         }
     }
 }
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun ActivityItemConnected(
+fun ActivityItem(
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     firstItem: Boolean = false,
@@ -209,6 +168,19 @@ fun ActivityItemConnected(
 }
 
 @Composable
+fun DateHeader(modifier: Modifier = Modifier, date: LocalDate) {
+    Surface(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Text(
+            modifier = Modifier.padding(4.dp),
+            text = RelativeTimeFormatter.format(date),
+            style = MaterialTheme.typography.body1
+        )
+    }
+}
+
+@Composable
 fun TimelineMarker(modifier: Modifier, content: @Composable () -> Unit) {
     Box(
         modifier = modifier
@@ -221,33 +193,21 @@ fun TimelineMarker(modifier: Modifier, content: @Composable () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
-@Composable
-fun ActivityLog(modifier: Modifier = Modifier) {
-    var expanded: Int by remember { mutableStateOf(3) }
-
-    LazyColumn(modifier = Modifier.padding(vertical = 0.dp, horizontal = 8.dp)) {
-        item { Spacer(modifier = Modifier.size(8.dp)) }
-        itemsIndexed(ActivityType.values()) { index, activityType ->
-
-            ActivityItemConnected(
-                expanded = expanded == index,
-                firstItem = index <= 0,
-                lastItem = index >= ActivityType.values().lastIndex,
-                time = Instant.now().minusSeconds(index * 60L * 56L * 3),
-                duration = Duration.ofMinutes(Random.nextLong(1, 20)),
-                activity = activityType,
-                description = activityType.name,
-                onClick = { expanded = if (expanded == index) -1 else index }
-            )
-        }
-    }
-}
-
 @Preview
 @Composable
 fun previewList() {
     LittleOneTheme {
-        ActivityLog()
+        ActivityLog(
+            items = ActivityType.values().map {
+                Activity(
+                    id = "",
+                    type = it,
+                    start_time = LocalDateTime.now()
+                        .minusSeconds(Random.nextInt(10) * 60L * 56L * 3),
+                    duration = Duration.ofMinutes(Random.nextLong(1, 20)),
+                    notes = ""
+                )
+            }.groupBy { it.start_time.toLocalDate() }
+        )
     }
 }

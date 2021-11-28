@@ -1,22 +1,19 @@
 package com.jsloane.littleone.domain.usecases
 
 import com.google.firebase.firestore.FirebaseFirestoreException
-import com.jsloane.littleone.base.Result
-import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.repository.LittleOneRepository
 import java.time.LocalDateTime
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.lastOrNull
 
 class InviteFamilyMemberUseCase @Inject constructor(
     private val repository: LittleOneRepository
-) : ResultUseCase<InviteFamilyMemberUseCase.Params, Flow<Result<Unit>>>() {
+) : UseCase<InviteFamilyMemberUseCase.Params>() {
 
-    override suspend fun doWork(params: Params): Flow<Result<Unit>> {
+    override suspend fun doWork(params: Params) {
         val inviteCode = findValidInviteCode()
-        return repository.createFamilyInvite(
+        repository.createFamilyInvite(
             familyId = params.family_id,
             inviteCode = inviteCode,
             inviteExpiration = LocalDateTime.now().plusDays(1L)

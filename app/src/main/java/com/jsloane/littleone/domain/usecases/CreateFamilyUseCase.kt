@@ -5,18 +5,20 @@ import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.repository.LittleOneRepository
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 
 class CreateFamilyUseCase @Inject constructor(
     private val repository: LittleOneRepository
 ) : ResultUseCase<CreateFamilyUseCase.Params, Result<String>>() {
-    override suspend fun doWork(params: Params): Result<String> {
+    override fun doWork(params: Params): Flow<Result<String>> = flow {
 
         val idRes = repository.createFamily(params.user_id).last()
 
-        return when (idRes) {
-            is Result.Success -> Result.Success(idRes.data)
-            else -> Result.Error("")
+        when (idRes) {
+            is Result.Success -> emit(Result.Success(idRes.data))
+            else -> emit(Result.Error(""))
         }
     }
 

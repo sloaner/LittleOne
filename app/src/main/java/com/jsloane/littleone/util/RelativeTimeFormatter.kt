@@ -4,12 +4,21 @@ import android.text.format.DateUtils.DAY_IN_MILLIS
 import android.text.format.DateUtils.HOUR_IN_MILLIS
 import android.text.format.DateUtils.MINUTE_IN_MILLIS
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class RelativeTimeFormatter {
     companion object {
-        val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a").withZone(ZoneId.systemDefault())
+        val timeFormatter = DateTimeFormatter
+            .ofPattern("hh:mm a")
+            .withZone(ZoneId.systemDefault())
+        val dayFormatter = DateTimeFormatter
+            .ofPattern("MMMM dd")
+            .withZone(ZoneId.systemDefault())
+        val dayWithYearFormatter = DateTimeFormatter
+            .ofPattern("MMMM dd, yyyy")
+            .withZone(ZoneId.systemDefault())
 
         fun format(then: Instant): String {
             val now = Instant.now()
@@ -34,6 +43,16 @@ class RelativeTimeFormatter {
                     "${diff / HOUR_IN_MILLIS} hours ago"
                 else ->
                     timeFormatter.format(then).lowercase()
+            }
+        }
+
+        fun format(then: LocalDate): String {
+            val today = LocalDate.now()
+            return when {
+                then == today -> "Today"
+                then == today.minusDays(1) -> "Yesterday"
+                then.year == today.year -> dayFormatter.format(then)
+                else -> dayWithYearFormatter.format(then)
             }
         }
     }

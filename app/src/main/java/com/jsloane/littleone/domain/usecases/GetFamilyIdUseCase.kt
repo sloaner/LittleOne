@@ -9,28 +9,29 @@ import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.P
 import com.jsloane.littleone.domain.repository.LittleOneRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 
-class GetFamilyUseCase @Inject constructor(
+class GetFamilyIdUseCase @Inject constructor(
     private val repository: LittleOneRepository,
     private val appSettings: AppSettingsRepository
-) : ResultUseCase<GetFamilyUseCase.Params, Result<Family>>() {
+) : ResultUseCase<GetFamilyIdUseCase.Params, Result<String>>() {
 
-    override fun doWork(params: Params): Flow<Result<Family>> = flow {
+    override fun doWork(params: Params): Flow<Result<String>> = flow {
         val cached = appSettings.familyId.first()
         if (cached.isNotBlank()) {
-            emitAll(repository.getFamily(cached))
+            emit(Result.Success(cached))
         } else {
-            emitAll(
-                repository.findFamily(params.user_id).onEach {
-                    if (it is Result.Success<Family>) {
-                        appSettings.setPreference(PreferenceKey.FAMILY, it.data.id)
-                    }
-                }
-            )
+            try {
+                val response = repository
+                    .findFamily(params.user_id)
+                    .first { it is Result.Success<Family> }
+                    as Result.Success<Family>
+                appSettings.setPreference(PreferenceKey.FAMILY, response.data.id)
+                emit(Result.Success(response.data.id))
+            } catch (e: Throwable) {
+                emit(Result.Error("Unable to find family"))
+            }
         }
     }
 

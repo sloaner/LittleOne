@@ -16,6 +16,7 @@ enum class ActivityType(
     MEAL("Meal", Category.FEEDING, "MEAL", 4, R.drawable.ic_meal),
     PEE("Pee", Category.DIAPER, "PEE", 0, R.drawable.ic_pee),
     POOP("Poop", Category.DIAPER, "POOP", 0, R.drawable.ic_poop),
+    BOTH("Both", Category.DIAPER, "BOTH", 0, R.drawable.ic_poop),
     TUMMY_TIME("Tummy Time", Category.LEISURE, "TUMMY", 1, R.drawable.ic_tummy_time),
     PLAY("Play", Category.LEISURE, "PLAY", 2, R.drawable.ic_play),
     OUTDOORS("Outdoors", Category.LEISURE, "OUT", 3, R.drawable.ic_outdoors),

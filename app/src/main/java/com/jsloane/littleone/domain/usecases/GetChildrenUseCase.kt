@@ -14,15 +14,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 
-class GetFamilyUseCase @Inject constructor(
+class GetChildrenUseCase @Inject constructor(
     private val repository: LittleOneRepository,
     private val appSettings: AppSettingsRepository
-) : ResultUseCase<GetFamilyUseCase.Params, Result<Family>>() {
+) : ResultUseCase<GetChildrenUseCase.Params, Result<Family>>() {
 
     override fun doWork(params: Params): Flow<Result<Family>> = flow {
         val cached = appSettings.familyId.first()
         if (cached.isNotBlank()) {
-            emitAll(repository.getFamily(cached))
+            repository.getFamily(cached)
         } else {
             emitAll(
                 repository.findFamily(params.user_id).onEach {

@@ -39,13 +39,9 @@ abstract class UseCase<in P : UseCase.Params> {
 }
 
 abstract class ResultUseCase<in P : UseCase.Params, R> {
-    operator fun invoke(params: P): Flow<R> = flow {
-        emit(doWork(params))
-    }
+    operator fun invoke(params: P): Flow<R> = doWork(params)
 
-    suspend fun executeSync(params: P): R = doWork(params)
-
-    protected abstract suspend fun doWork(params: P): R
+    protected abstract fun doWork(params: P): Flow<R>
 }
 
 abstract class ObservableUseCase<in P : UseCase.Params, T> {

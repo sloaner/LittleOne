@@ -13,7 +13,6 @@ import com.jsloane.littleone.domain.observers.AuthStateObserver
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +27,6 @@ class LoginViewModel @Inject constructor(
     authStateObserver: AuthStateObserver,
     getFamily: GetFamilyUseCase
 ) : ViewModel() {
-    private val pendingActions = MutableSharedFlow<LoginAction>()
 
     private val pendingNavigation = MutableStateFlow<LoginAction?>(null)
     private val email = MutableStateFlow("")
@@ -77,22 +75,6 @@ class LoginViewModel @Inject constructor(
                 }
             }
         }
-
-        viewModelScope.launch {
-            pendingActions.collect { action ->
-                when (action) {
-                    is LoginAction.UpdateEmail -> email.emit(action.email)
-                    is LoginAction.UpdatePassword -> password.emit(action.password)
-                    is LoginAction.SignInEmail -> signInWithEmailAndPassword(
-                        email.value,
-                        password.value
-                    )
-                    is LoginAction.SignInToken -> signInWithCredentials(action.intent)
-                    else -> {
-                    }
-                }
-            }
-        }
     }
 
     private fun signInWithEmailAndPassword(email: String, password: String) =
@@ -126,7 +108,17 @@ class LoginViewModel @Inject constructor(
 
     fun submitAction(action: LoginAction) {
         viewModelScope.launch {
-            pendingActions.emit(action)
+            when (action) {
+                is LoginAction.UpdateEmail -> email.emit(action.email)
+                is LoginAction.UpdatePassword -> password.emit(action.password)
+                is LoginAction.SignInEmail -> signInWithEmailAndPassword(
+                    email.value,
+                    password.value
+                )
+                is LoginAction.SignInToken -> signInWithCredentials(action.intent)
+                else -> {
+                }
+            }
         }
     }
 }

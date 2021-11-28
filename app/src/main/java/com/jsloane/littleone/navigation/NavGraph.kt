@@ -11,6 +11,7 @@ import androidx.navigation.navDeepLink
 import com.jsloane.littleone.ui.view.feed.FeedScreen
 import com.jsloane.littleone.ui.view.login.LoginScreen
 import com.jsloane.littleone.ui.view.onboard.OnboardingScreen
+import com.jsloane.littleone.ui.view.settings.SettingsScreen
 
 @Composable
 fun LittleOneNavGraph(
@@ -52,6 +53,7 @@ fun LittleOneNavGraph(
         }
 
         composable(Screen.Settings.route) {
+            SettingsScreen()
         }
     }
 }
@@ -88,5 +90,6 @@ class MainActions(navController: NavHostController) {
     }
 
     val openSettings: () -> Unit = {
+        navController.navigate(Screen.Settings.route)
     }
 }
