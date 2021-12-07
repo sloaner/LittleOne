@@ -19,8 +19,10 @@ interface LittleOneRepository {
         inviteCode: String,
         inviteExpiration: LocalDateTime
     ): Flow<Result<Unit>>
+
     fun updateFamilyUsers(familyId: String, userId: String): Flow<Result<Unit>>
     fun createChild(familyId: String, name: String, birthday: LocalDate): Flow<Result<String>>
+    fun createActivity(familyId: String, childId: String, activity: Activity): Flow<Result<String>>
 
     fun observeChildren(familyId: String): Flow<Result<List<Child>>>
     fun observeActivities(familyId: String, childId: String): Flow<Result<List<Activity>>>

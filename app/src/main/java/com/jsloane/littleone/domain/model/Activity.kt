@@ -6,7 +6,8 @@ import java.time.LocalDateTime
 data class Activity(
     val id: String,
     val type: ActivityType,
-    val start_time: LocalDateTime,
-    val duration: Duration,
-    val notes: String
+    val start_time: LocalDateTime = LocalDateTime.now(),
+    val duration: Duration = Duration.ZERO,
+    val quantity: Float = 0f,
+    val notes: String = ""
 )

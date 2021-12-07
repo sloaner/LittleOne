@@ -1,8 +1,11 @@
 package com.jsloane.littleone.ui.view.feed.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -20,10 +23,13 @@ import androidx.compose.material.Card
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -46,10 +52,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import kotlin.random.Random
-
-val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a").withZone(ZoneId.systemDefault())
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -94,14 +97,6 @@ fun ActivityItem(
     description: String,
     onClick: () -> Unit
 ) {
-    val elevationProgress: Float by animateFloatAsState(if (expanded) 2f else 0f)
-    val borderProgress by animateColorAsState(
-        if (expanded)
-            MaterialTheme.colors.onSurface.copy(alpha = 1f)
-        else
-            MaterialTheme.colors.onSurface.copy(alpha = 0f)
-    )
-
     Card(
         modifier = modifier.fillMaxWidth(),
         onClick = onClick,
@@ -112,7 +107,7 @@ fun ActivityItem(
                 .padding(horizontal = 16.dp)
                 .defaultMinSize(minHeight = 42.dp)
         ) {
-            val (titleRef, iconRef, descRef, dividerRef) = createRefs()
+            val (dividerRef, iconRef, titleRef, descRef, stopRef) = createRefs()
 
             Box(
                 modifier = Modifier
@@ -145,23 +140,53 @@ fun ActivityItem(
             Text(
                 modifier = Modifier
                     .constrainAs(titleRef) {
-                        start.linkTo(iconRef.end, 8.dp)
+                        linkTo(
+                            start = iconRef.end,
+                            startMargin = 8.dp,
+                            end = stopRef.start,
+                            endMargin = 8.dp,
+                            bias = 0f
+                        )
                         top.linkTo(parent.top, 9.dp)
                     },
-                text = "${activity.category} · ${activity.title}",
+                text = "${activity.category.title} · ${activity.title}",
                 style = MaterialTheme.typography.body2
             )
 
             CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
                 Text(
                     modifier = Modifier.constrainAs(descRef) {
-                        start.linkTo(titleRef.start)
+                        linkTo(
+                            start = titleRef.start,
+                            end = stopRef.start,
+                            endMargin = 8.dp,
+                            bias = 0f
+                        )
                         top.linkTo(titleRef.bottom, 2.dp)
                         bottom.linkTo(parent.bottom, 9.dp)
                     },
                     text = RelativeTimeFormatter.format(time),
                     style = MaterialTheme.typography.caption
                 )
+            }
+            AnimatedVisibility(
+                modifier = Modifier.constrainAs(stopRef) {
+                    end.linkTo(parent.end)
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                },
+                visible = duration.isZero && activity.features[ActivityType.FEATURE_END],
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                IconButton(
+                    onClick = {}
+                ) {
+                    Icon(imageVector = Icons.Outlined.StopCircle, contentDescription = null)
+                }
+            }
+
+            AnimatedVisibility(visible = expanded) {
             }
         }
     }
@@ -204,7 +229,7 @@ fun previewList() {
                     type = it,
                     start_time = LocalDateTime.now()
                         .minusSeconds(Random.nextInt(10) * 60L * 56L * 3),
-                    duration = Duration.ofMinutes(Random.nextLong(1, 20)),
+                    duration = Duration.ofMinutes(Random.nextLong(0, 10)),
                     notes = ""
                 )
             }.groupBy { it.start_time.toLocalDate() }

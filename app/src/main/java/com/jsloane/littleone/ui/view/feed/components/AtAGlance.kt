@@ -46,7 +46,7 @@ fun AtAGlance(modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             GlanceItem(
-                icon = R.drawable.ic_bottle,
+                icon = R.drawable.ic_activity_bottle,
                 line1 = "3 feeds",
                 line2 = "42 mins"
             )
@@ -56,7 +56,7 @@ fun AtAGlance(modifier: Modifier = Modifier) {
                 line2 = "4 pee · 3 poo"
             )
             GlanceItem(
-                icon = R.drawable.ic_sleep,
+                icon = R.drawable.ic_activity_sleep,
                 line1 = "4 hours"
             )
         }

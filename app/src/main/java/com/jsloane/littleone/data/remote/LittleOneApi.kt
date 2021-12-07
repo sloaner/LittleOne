@@ -11,6 +11,7 @@ import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.data.remote.entity.ActivityDto
 import com.jsloane.littleone.data.remote.entity.ChildDto
 import com.jsloane.littleone.data.remote.entity.FamilyDto
+import com.jsloane.littleone.domain.model.Activity
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -124,6 +125,19 @@ class LittleOneApi {
         return childRef.id
     }
 
+    suspend fun addActivity(familyId: String, childId: String, activity: Activity): String {
+        val childRef = Firebase.firestore
+            .collection(Collections.Family.id)
+            .document(familyId)
+            .collection(Collections.Child.id)
+            .document(childId)
+            .collection(Collections.Activity.id)
+            .add(ActivityDto.fromActivity(activity))
+            .await()
+
+        return childRef.id
+    }
+
     fun observeChildren(familyId: String): Flow<List<ChildDto?>> = callbackFlow {
         val queryHandler = EventListener<QuerySnapshot> { value, error ->
             val list: List<ChildDto?> = value?.documents?.map { it.toObject() } ?: emptyList()
@@ -155,6 +169,7 @@ class LittleOneApi {
                 .document(childId)
                 .collection(Collections.Activity.id)
                 .orderBy(Collections.Activity.Field.start_time, Query.Direction.DESCENDING)
+                .limit(100)
                 .addSnapshotListener(queryHandler)
 
             awaitClose { childrenListener.remove() }

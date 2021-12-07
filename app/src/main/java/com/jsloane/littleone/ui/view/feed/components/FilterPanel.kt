@@ -24,8 +24,6 @@ import androidx.compose.material.primarySurface
 import androidx.compose.material.rememberBackdropScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,39 +40,17 @@ fun FilterPanel(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colors.primarySurface,
     contentColor: Color = MaterialTheme.colors.contentColorFor(backgroundColor),
-    filters: List<ActivityFilterState>,
-    filtersChanged: (List<ActivityType>) -> Unit
+    filters: Map<ActivityType.Category, List<ActivityFilterState>>,
+    filterChanged: (ActivityType) -> Unit
 ) {
-
-    val groupedFilters = remember {
-        mutableStateMapOf<ActivityType.Category, List<ActivityFilterState>>().apply {
-            filters
-                .groupBy { it.type.category }
-                .also {
-                    putAll(it)
-                }
-        }
-    }
-
     LazyColumn(modifier = modifier) {
-        items(groupedFilters.keys.sortedBy { it.order }.toList()) { group ->
+        items(filters.keys.toList()) { group ->
             FilterGroup(
                 header = group.name,
-                filters = groupedFilters[group]?.sortedBy { it.type.order }.orEmpty(),
+                filters = filters[group].orEmpty(),
                 backgroundColor = backgroundColor,
                 contentColor = contentColor,
-                onClick = { type ->
-                    val index = groupedFilters[group]?.indexOfFirst { it.type == type } ?: 0
-                    groupedFilters[group] = groupedFilters[group]!!.toMutableList().apply {
-                        this[index].selected = !this[index].selected
-                    }
-                    filtersChanged(
-                        groupedFilters
-                            .flatMap { it.value }
-                            .filter { it.selected }
-                            .map { it.type }
-                    )
-                }
+                onClick = { filterChanged(it) }
             )
         }
     }
@@ -153,8 +129,30 @@ private fun PreviewPanel() {
             backLayerBackgroundColor = MaterialTheme.colors.primarySurface,
             backLayerContent = {
                 FilterPanel(
-                    filters = ActivityType.values().map { ActivityFilterState(it, false) },
-                    filtersChanged = {}
+                    filters = sortedMapOf(
+                        ActivityType.Category.FEEDING to listOf(
+                            ActivityFilterState(ActivityType.LEFT_BREAST, false),
+                            ActivityFilterState(ActivityType.RIGHT_BREAST, false),
+                            ActivityFilterState(ActivityType.BOTTLE, false),
+                            ActivityFilterState(ActivityType.MEAL, false),
+                        ),
+                        ActivityType.Category.DIAPER to listOf(
+                            ActivityFilterState(ActivityType.PEE, false),
+                            ActivityFilterState(ActivityType.POOP, false),
+                            ActivityFilterState(ActivityType.BOTH, false),
+                        ),
+                        ActivityType.Category.LEISURE to listOf(
+                            ActivityFilterState(ActivityType.TUMMY_TIME, false),
+                            ActivityFilterState(ActivityType.PLAY, false),
+                            ActivityFilterState(ActivityType.OUTDOORS, false),
+                            ActivityFilterState(ActivityType.BATH, false),
+                            ActivityFilterState(ActivityType.TV, false),
+                        ),
+                        ActivityType.Category.SLEEP to listOf(
+                            ActivityFilterState(ActivityType.SLEEP, false)
+                        )
+                    ),
+                    filterChanged = {}
                 )
             },
             frontLayerBackgroundColor = MaterialTheme.colors.surface,

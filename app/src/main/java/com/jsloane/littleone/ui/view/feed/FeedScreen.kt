@@ -1,11 +1,19 @@
 package com.jsloane.littleone.ui.view.feed
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BackdropScaffold
 import androidx.compose.material.BackdropValue
 import androidx.compose.material.Divider
@@ -32,7 +40,11 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -42,10 +54,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.jsloane.littleone.R
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
-import com.jsloane.littleone.ui.view.feed.components.ActivityFilterState
 import com.jsloane.littleone.ui.view.feed.components.ActivityLog
 import com.jsloane.littleone.ui.view.feed.components.AtAGlance
 import com.jsloane.littleone.ui.view.feed.components.FilterPanel
+import com.jsloane.littleone.ui.view.feed.components.NewActivityChoiceSheet
+import com.jsloane.littleone.ui.view.feed.components.NewActivitySheet
 import com.jsloane.littleone.util.rememberFlowWithLifecycle
 import kotlinx.coroutines.launch
 
@@ -70,20 +83,25 @@ fun FeedScreen(
     )
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class)
 @Composable
 internal fun FeedScreen(
     viewState: FeedViewState,
     actions: (FeedAction) -> Unit
 ) {
+    var selection: ActivityType? by rememberSaveable { mutableStateOf(null) }
+
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
     val backdropState = rememberBackdropScaffoldState(initialValue = BackdropValue.Concealed)
-    val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden) {
+        if (it == ModalBottomSheetValue.Hidden) selection = null
+        true
+    }
+    val sheetScrollState = rememberScrollState()
 
     BackdropScaffold(
         scaffoldState = backdropState,
-        gesturesEnabled = false,
         appBar = {
             TopAppBar(
                 title = { Text("Backdrop scaffold") },
@@ -123,8 +141,8 @@ internal fun FeedScreen(
         backLayerBackgroundColor = MaterialTheme.colors.primarySurface,
         backLayerContent = {
             FilterPanel(
-                filters = ActivityType.values().map { ActivityFilterState(it, false) },
-                filtersChanged = {
+                filters = viewState.filters,
+                filterChanged = {
                     actions(FeedAction.UpdateSelectedFilters(it))
                 }
             )
@@ -133,14 +151,41 @@ internal fun FeedScreen(
         frontLayerContent = {
             ModalBottomSheetLayout(
                 sheetState = sheetState,
+                sheetShape = MaterialTheme.shapes.large.copy(
+                    bottomStart = ZeroCornerSize,
+                    bottomEnd = ZeroCornerSize
+                ),
                 sheetContent = {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        items(50) { index ->
-                            Text(text = "Add $index")
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .background(
+                                    color = Color.LightGray,
+                                    shape = RoundedCornerShape(50)
+                                )
+                                .size(width = 32.dp, height = 4.dp)
+                        )
+                        AnimatedVisibility(visible = selection == null) {
+                            NewActivityChoiceSheet(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .verticalScroll(sheetScrollState)
+                            ) { selection = it }
+                        }
+                        AnimatedVisibility(visible = selection != null) {
+                            NewActivitySheet(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .verticalScroll(sheetScrollState),
+                                activityType = selection ?: ActivityType.LEFT_BREAST
+                            ) {
+                                actions(FeedAction.AddNewActivity(it))
+                                scope.launch {
+                                    sheetState.hide()
+                                    selection = null
+                                }
+                            }
                         }
                     }
                 }

@@ -46,16 +46,8 @@ class SettingsViewModel @Inject constructor(
     fun submitAction(action: FeedAction) {
         viewModelScope.launch {
             when (action) {
-                is FeedAction.SignInEmail -> {}
-                is FeedAction.SignInToken -> {}
-                is FeedAction.UpdatePassword -> {}
-                is FeedAction.UpdateSelectedFilters -> updateSelectedFilters(action.filters)
                 else -> {}
             }
         }
-    }
-
-    private suspend fun updateSelectedFilters(filters: List<ActivityType>) {
-        selectedFilters.emit(filters)
     }
 }
