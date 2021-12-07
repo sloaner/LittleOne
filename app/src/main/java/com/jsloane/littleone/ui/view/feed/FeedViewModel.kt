@@ -11,7 +11,9 @@ import com.jsloane.littleone.domain.observers.ActivityObserver
 import com.jsloane.littleone.domain.observers.ChildObserver
 import com.jsloane.littleone.domain.repository.AppSettingsRepository
 import com.jsloane.littleone.domain.usecases.CreateActivityUseCase
+import com.jsloane.littleone.domain.usecases.DeleteActivityUseCase
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
+import com.jsloane.littleone.domain.usecases.UpdateActivityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,11 +29,13 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    private val getFamily: GetFamilyUseCase,
-    private val childObserver: ChildObserver,
-    private val activityObserver: ActivityObserver,
+    private val appSettingsRepository: AppSettingsRepository,
+    private val getFamilyUseCase: GetFamilyUseCase,
     private val createActivityUseCase: CreateActivityUseCase,
-    private val appSettingsRepository: AppSettingsRepository
+    private val updateActivityUseCase: UpdateActivityUseCase,
+    private val deleteActivityUseCase: DeleteActivityUseCase,
+    private val childObserver: ChildObserver,
+    private val activityObserver: ActivityObserver
 ) : ViewModel() {
     private val selectedFilters = MutableStateFlow(listOf<ActivityType>())
     private val selectedChild = MutableStateFlow("FkzZXXvYaIa3QS6IWr2P")
@@ -55,7 +59,7 @@ class FeedViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val user_id = Firebase.auth.currentUser?.uid.orEmpty()
-            getFamily(GetFamilyUseCase.Params(user_id)).collect {
+            getFamilyUseCase(GetFamilyUseCase.Params(user_id)).collect {
                 when (it) {
                     is Result.Error -> {}
                     is Result.Loading -> {}
@@ -75,6 +79,8 @@ class FeedViewModel @Inject constructor(
             when (action) {
                 is FeedAction.UpdateSelectedFilters -> updateSelectedFilters(action.filter)
                 is FeedAction.AddNewActivity -> addNewActivity(action.activity)
+                is FeedAction.EditActivity -> editActivity(action.activity)
+                is FeedAction.DeleteActivity -> deleteActivity(action.activity)
                 else -> {}
             }
         }
@@ -95,6 +101,26 @@ class FeedViewModel @Inject constructor(
                 family_id = appSettingsRepository.familyId.first(),
                 child_id = selectedChild.value,
                 activity = activity
+            )
+        ).last()
+    }
+
+    private suspend fun editActivity(activity: Activity) {
+        updateActivityUseCase(
+            UpdateActivityUseCase.Params(
+                family_id = appSettingsRepository.familyId.first(),
+                child_id = selectedChild.value,
+                activity = activity
+            )
+        ).last()
+    }
+
+    private suspend fun deleteActivity(activity: Activity) {
+        deleteActivityUseCase(
+            DeleteActivityUseCase.Params(
+                family_id = appSettingsRepository.familyId.first(),
+                child_id = selectedChild.value,
+                activityId = activity.id
             )
         ).last()
     }

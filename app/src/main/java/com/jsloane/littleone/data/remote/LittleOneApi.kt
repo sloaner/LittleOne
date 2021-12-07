@@ -137,6 +137,38 @@ class LittleOneApi {
         return childRef.id
     }
 
+    suspend fun updateActivity(familyId: String, childId: String, activity: Activity) {
+        val dto = ActivityDto.fromActivity(activity)
+
+        Firebase.firestore
+            .collection(Collections.Family.id)
+            .document(familyId)
+            .collection(Collections.Child.id)
+            .document(childId)
+            .collection(Collections.Activity.id)
+            .document(dto.id)
+            .update(
+                Collections.Activity.Field.type, dto.type,
+                Collections.Activity.Field.start_time, dto.start_time,
+                Collections.Activity.Field.duration, dto.duration,
+                Collections.Activity.Field.quantity, dto.quantity,
+                Collections.Activity.Field.notes, dto.notes,
+            )
+            .await()
+    }
+
+    suspend fun deleteActivity(familyId: String, childId: String, activityId: String) {
+        Firebase.firestore
+            .collection(Collections.Family.id)
+            .document(familyId)
+            .collection(Collections.Child.id)
+            .document(childId)
+            .collection(Collections.Activity.id)
+            .document(activityId)
+            .delete()
+            .await()
+    }
+
     fun observeChildren(familyId: String): Flow<List<ChildDto?>> = callbackFlow {
         val queryHandler = EventListener<QuerySnapshot> { value, error ->
             val list: List<ChildDto?> = value?.documents?.map { it.toObject() } ?: emptyList()
@@ -202,6 +234,7 @@ private sealed class Collections(val id: String) {
             const val type = "type"
             const val start_time = "start_time"
             const val duration = "duration"
+            const val quantity = "quantity"
             const val notes = "notes"
         }
     }

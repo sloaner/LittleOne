@@ -23,6 +23,8 @@ interface LittleOneRepository {
     fun updateFamilyUsers(familyId: String, userId: String): Flow<Result<Unit>>
     fun createChild(familyId: String, name: String, birthday: LocalDate): Flow<Result<String>>
     fun createActivity(familyId: String, childId: String, activity: Activity): Flow<Result<String>>
+    fun updateActivity(familyId: String, childId: String, activity: Activity): Flow<Result<Unit>>
+    fun deleteActivity(familyId: String, childId: String, activityId: String): Flow<Result<Unit>>
 
     fun observeChildren(familyId: String): Flow<Result<List<Child>>>
     fun observeActivities(familyId: String, childId: String): Flow<Result<List<Activity>>>

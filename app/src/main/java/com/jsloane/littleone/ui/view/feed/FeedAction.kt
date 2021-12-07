@@ -7,5 +7,6 @@ sealed class FeedAction {
     object OpenSettings : FeedAction()
     class UpdateSelectedFilters(val filter: ActivityType) : FeedAction()
     class AddNewActivity(val activity: Activity) : FeedAction()
-    class StopRunningActivity(val activity: Activity) : FeedAction()
+    class EditActivity(val activity: Activity) : FeedAction()
+    class DeleteActivity(val activity: Activity) : FeedAction()
 }

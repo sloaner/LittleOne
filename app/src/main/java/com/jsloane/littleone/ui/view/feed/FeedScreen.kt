@@ -209,7 +209,12 @@ internal fun FeedScreen(
                                 .padding(horizontal = 24.dp, vertical = 16.dp)
                         )
                         Divider()
-                        ActivityLog(items = viewState.groupedActivities)
+                        ActivityLog(
+                            items = viewState.groupedActivities,
+                            stopTimer = { actions(FeedAction.EditActivity(it)) },
+                            updateItem = { actions(FeedAction.EditActivity(it)) },
+                            deleteItem = { actions(FeedAction.DeleteActivity(it)) }
+                        )
                     }
                 }
             }

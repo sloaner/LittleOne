@@ -92,6 +92,26 @@ class LittleOneRepositoryImpl @Inject constructor(
         emit(Result.Success(id))
     }
 
+    override fun updateActivity(
+        familyId: String,
+        childId: String,
+        activity: Activity
+    ): Flow<Result<Unit>> = flow {
+        emit(Result.Loading())
+        api.updateActivity(familyId, childId, activity)
+        emit(Result.Success(Unit))
+    }
+
+    override fun deleteActivity(
+        familyId: String,
+        childId: String,
+        activityId: String
+    ): Flow<Result<Unit>> = flow {
+        emit(Result.Loading())
+        api.deleteActivity(familyId, childId, activityId)
+        emit(Result.Success(Unit))
+    }
+
     override fun observeChildren(
         familyId: String
     ): Flow<Result<List<Child>>> =

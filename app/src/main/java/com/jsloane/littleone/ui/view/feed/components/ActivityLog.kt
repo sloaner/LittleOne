@@ -29,6 +29,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -58,9 +60,12 @@ import kotlin.random.Random
 @Composable
 fun ActivityLog(
     modifier: Modifier = Modifier,
-    items: Map<LocalDate, List<Activity>>
+    items: Map<LocalDate, List<Activity>>,
+    stopTimer: (Activity) -> Unit,
+    updateItem: (Activity) -> Unit,
+    deleteItem: (Activity) -> Unit
 ) {
-    var expanded: Int by remember { mutableStateOf(3) }
+    var expanded by remember { mutableStateOf("") }
 
     LazyColumn(modifier = modifier.padding(vertical = 0.dp, horizontal = 8.dp)) {
         item { Spacer(modifier = Modifier.size(8.dp)) }
@@ -70,14 +75,23 @@ fun ActivityLog(
             }
             itemsIndexed(list) { index, activity ->
                 ActivityItem(
-                    expanded = expanded == index,
+                    expanded = expanded == activity.id,
                     firstItem = index <= 0,
                     lastItem = index >= list.lastIndex,
                     time = activity.start_time,
                     duration = activity.duration,
                     activity = activity.type,
                     description = activity.type.name,
-                    onClick = { expanded = if (expanded == index) -1 else index }
+                    onClick = { expanded = if (expanded == activity.id) "" else activity.id },
+                    onStop = {
+                        updateItem(
+                            activity.copy(
+                                duration = Duration.between(activity.start_time, Instant.now())
+                            )
+                        )
+                    },
+                    onEdit = {},
+                    onDelete = { deleteItem(activity) }
                 )
             }
         }
@@ -95,7 +109,10 @@ fun ActivityItem(
     time: Instant,
     duration: Duration,
     description: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onStop: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -107,7 +124,7 @@ fun ActivityItem(
                 .padding(horizontal = 16.dp)
                 .defaultMinSize(minHeight = 42.dp)
         ) {
-            val (dividerRef, iconRef, titleRef, descRef, stopRef) = createRefs()
+            val (dividerRef, iconRef, titleRef, descRef, stopRef, editRef, deleteRef) = createRefs()
 
             Box(
                 modifier = Modifier
@@ -169,20 +186,46 @@ fun ActivityItem(
                     style = MaterialTheme.typography.caption
                 )
             }
+
             AnimatedVisibility(
                 modifier = Modifier.constrainAs(stopRef) {
-                    end.linkTo(parent.end)
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
+                    end.linkTo(if (expanded) editRef.start else parent.end)
+                    top.linkTo(titleRef.top)
                 },
                 visible = duration.isZero && activity.features[ActivityType.FEATURE_END],
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
-                IconButton(
-                    onClick = {}
-                ) {
+                IconButton(onClick = onStop) {
                     Icon(imageVector = Icons.Outlined.StopCircle, contentDescription = null)
+                }
+            }
+
+            AnimatedVisibility(
+                modifier = Modifier.constrainAs(editRef) {
+                    end.linkTo(deleteRef.start)
+                    top.linkTo(titleRef.top)
+                },
+                visible = expanded,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                IconButton(onClick = onEdit) {
+                    Icon(imageVector = Icons.Outlined.Edit, contentDescription = null)
+                }
+            }
+
+            AnimatedVisibility(
+                modifier = Modifier.constrainAs(deleteRef) {
+                    end.linkTo(parent.end)
+                    top.linkTo(titleRef.top)
+                },
+                visible = expanded,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                IconButton(onClick = onDelete) {
+                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
                 }
             }
 
@@ -223,15 +266,21 @@ fun TimelineMarker(modifier: Modifier, content: @Composable () -> Unit) {
 private fun PreviewList() {
     LittleOneTheme {
         ActivityLog(
-            items = ActivityType.values().map {
-                Activity(
-                    id = "",
-                    type = it,
-                    start_time = Instant.now().minusSeconds(Random.nextInt(10) * 60L * 56L * 3),
-                    duration = Duration.ofMinutes(Random.nextLong(0, 10)),
-                    notes = ""
-                )
-            }.groupBy { it.start_time.toLocalDate(ZoneId.systemDefault()) }
+            items = ActivityType.values()
+                .mapIndexed { i, v ->
+                    Activity(
+                        id = "$i",
+                        type = v,
+                        start_time = Instant.now().minusSeconds(Random.nextInt(10) * 60L * 56L * 3),
+                        duration = Duration.ofMinutes(Random.nextLong(0, 10)),
+                        notes = ""
+                    )
+                }.groupBy {
+                    it.start_time.toLocalDate(ZoneId.systemDefault())
+                },
+            stopTimer = {},
+            updateItem = {},
+            deleteItem = {}
         )
     }
 }
