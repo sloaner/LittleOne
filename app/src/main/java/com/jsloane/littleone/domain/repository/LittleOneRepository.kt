@@ -4,8 +4,8 @@ import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.Child
 import com.jsloane.littleone.domain.model.Family
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import kotlinx.coroutines.flow.Flow
 
 interface LittleOneRepository {
@@ -17,7 +17,7 @@ interface LittleOneRepository {
     fun createFamilyInvite(
         familyId: String,
         inviteCode: String,
-        inviteExpiration: LocalDateTime
+        inviteExpiration: Instant
     ): Flow<Result<Unit>>
 
     fun updateFamilyUsers(familyId: String, userId: String): Flow<Result<Unit>>

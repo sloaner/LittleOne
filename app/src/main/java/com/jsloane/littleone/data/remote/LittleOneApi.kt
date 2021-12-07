@@ -12,10 +12,9 @@ import com.jsloane.littleone.data.remote.entity.ActivityDto
 import com.jsloane.littleone.data.remote.entity.ChildDto
 import com.jsloane.littleone.data.remote.entity.FamilyDto
 import com.jsloane.littleone.domain.model.Activity
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -59,7 +58,7 @@ class LittleOneApi {
             )
             .whereGreaterThanOrEqualTo(
                 Collections.Family.Field.inviteExpiration,
-                Timestamp(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC), 0)
+                Timestamp(Instant.now().epochSecond, 0)
             )
             .get()
             .await()
@@ -83,7 +82,7 @@ class LittleOneApi {
     suspend fun updateFamilyInviteCode(
         familyId: String,
         inviteCode: String,
-        inviteExpiration: LocalDateTime
+        inviteExpiration: Instant
     ) {
         Firebase.firestore
             .collection(Collections.Family.id)
@@ -92,7 +91,7 @@ class LittleOneApi {
                 mapOf(
                     Collections.Family.Field.inviteCode to inviteCode,
                     Collections.Family.Field.inviteExpiration to
-                        Timestamp(inviteExpiration.toEpochSecond(ZoneOffset.UTC), 0)
+                        Timestamp(inviteExpiration.epochSecond, 0)
                 )
             ).await()
     }

@@ -51,10 +51,14 @@ import com.google.android.material.timepicker.MaterialTimePicker
 import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
+import com.jsloane.littleone.util.toLocalDate
+import com.jsloane.littleone.util.toLocalTime
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val dateFormatter = DateTimeFormatter.ofPattern("MMMM d")
@@ -100,15 +104,15 @@ fun NewActivityChoiceSheet(
 fun NewActivitySheet(
     modifier: Modifier = Modifier,
     activityType: ActivityType,
-    startDate: LocalDate = LocalDate.now(),
+    startDateTime: Instant = Instant.now(),
     onSubmit: (Activity) -> Unit
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
-    var date: LocalDate by remember { mutableStateOf(startDate) }
-    var start_time: LocalTime by remember { mutableStateOf(LocalTime.now()) }
-    var end_time: LocalTime? by remember { mutableStateOf(null) }
+    var date by remember { mutableStateOf(startDateTime.toLocalDate(ZoneId.systemDefault())) }
+    var startTime by remember { mutableStateOf(startDateTime.toLocalTime(ZoneId.systemDefault())) }
+    var endTime by remember { mutableStateOf<LocalTime?>(null) }
     var quantity by remember { mutableStateOf(0f) }
     var notes: String by remember { mutableStateOf("") }
 
@@ -142,20 +146,10 @@ fun NewActivitySheet(
                 onValueChange = { },
                 label = { Text("Date") },
                 leadingIcon = {
-                    IconButton(onClick = {
-                        showDatePicker(
-                            context = context,
-                            titleText = "Select Date",
-                            date = date.toEpochDay() * DAY_IN_MILLIS,
-                            onSuccess = { date = LocalDate.ofEpochDay(it / DAY_IN_MILLIS) },
-                            onDismiss = { focusManager.clearFocus() }
-                        )
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Today,
-                            contentDescription = "choose date"
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Today,
+                        contentDescription = "choose date"
+                    )
                 },
                 singleLine = true,
                 readOnly = true
@@ -165,37 +159,26 @@ fun NewActivitySheet(
             OutlinedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onFocusChanged {
-                        if (it.isFocused || it.hasFocus) {
+                    .onFocusChanged { focus ->
+                        if (focus.isFocused || focus.hasFocus) {
                             showTimePicker(
                                 context = context,
                                 titleText = "Select $startLabel",
-                                hour = start_time.hour,
-                                minute = start_time.minute,
-                                onSuccess = { start_time = LocalTime.of(it.hour, it.minute) },
+                                hour = startTime.hour,
+                                minute = startTime.minute,
+                                onSuccess = { startTime = LocalTime.of(it.hour, it.minute) },
                                 onDismiss = { focusManager.clearFocus() }
                             )
                         }
                     },
-                value = timeFormatter.format(start_time),
+                value = timeFormatter.format(startTime),
                 onValueChange = { },
                 label = { Text(startLabel) },
                 leadingIcon = {
-                    IconButton(onClick = {
-                        showTimePicker(
-                            context = context,
-                            titleText = "Select $startLabel",
-                            hour = start_time.hour,
-                            minute = start_time.minute,
-                            onSuccess = { start_time = LocalTime.of(it.hour, it.minute) },
-                            onDismiss = { focusManager.clearFocus() }
-                        )
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Schedule,
-                            contentDescription = "choose $startLabel"
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Schedule,
+                        contentDescription = null
+                    )
                 },
                 singleLine = true,
                 readOnly = true
@@ -204,41 +187,30 @@ fun NewActivitySheet(
                 OutlinedTextField(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onFocusChanged {
-                            if (it.hasFocus || it.isFocused) {
+                        .onFocusChanged { focus ->
+                            if (focus.hasFocus || focus.isFocused) {
                                 showTimePicker(
                                     context = context,
                                     titleText = "Select Finish Time",
-                                    hour = end_time?.hour ?: start_time.plusMinutes(15).hour,
-                                    minute = end_time?.minute ?: start_time.plusMinutes(15).minute,
-                                    onSuccess = { end_time = LocalTime.of(it.hour, it.minute) },
+                                    hour = endTime?.hour ?: startTime.plusMinutes(15).hour,
+                                    minute = endTime?.minute ?: startTime.plusMinutes(15).minute,
+                                    onSuccess = { endTime = LocalTime.of(it.hour, it.minute) },
                                     onDismiss = { focusManager.clearFocus() }
                                 )
                             }
                         },
-                    value = end_time?.let { timeFormatter.format(it) } ?: "",
+                    value = endTime?.let { timeFormatter.format(it) } ?: "",
                     onValueChange = { },
                     label = { Text("Finish Time (Optional)") },
                     leadingIcon = {
-                        IconButton(onClick = {
-                            showTimePicker(
-                                context = context,
-                                titleText = "Select Finish Time",
-                                hour = end_time?.hour ?: start_time.plusMinutes(15).hour,
-                                minute = end_time?.minute ?: start_time.plusMinutes(15).minute,
-                                onSuccess = { end_time = LocalTime.of(it.hour, it.minute) },
-                                onDismiss = { focusManager.clearFocus() }
-                            )
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Schedule,
-                                contentDescription = "choose finish time"
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = null
+                        )
                     },
                     trailingIcon = {
-                        if (end_time != null) {
-                            IconButton(onClick = { end_time = null }) {
+                        if (endTime != null) {
+                            IconButton(onClick = { endTime = null }) {
                                 Icon(
                                     modifier = Modifier.scale(0.75f),
                                     imageVector = Icons.Default.Close,
@@ -284,10 +256,13 @@ fun NewActivitySheet(
                         Activity(
                             id = "",
                             type = activityType,
-                            start_time = LocalDateTime.of(date, start_time),
+                            start_time = LocalDateTime
+                                .of(date, startTime)
+                                .atZone(ZoneId.systemDefault())
+                                .toInstant(),
                             duration =
-                            if (end_time != null) {
-                                Duration.between(start_time, end_time)
+                            if (endTime != null) {
+                                Duration.between(startTime, endTime)
                             } else {
                                 Duration.ZERO
                             },
@@ -297,7 +272,7 @@ fun NewActivitySheet(
                     )
                 }
             ) {
-                if (end_time != null) {
+                if (endTime != null) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)

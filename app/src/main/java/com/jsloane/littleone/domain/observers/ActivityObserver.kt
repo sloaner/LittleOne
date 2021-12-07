@@ -5,7 +5,7 @@ import com.jsloane.littleone.domain.ObservableUseCase
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.repository.LittleOneRepository
-import java.time.LocalDate
+import java.time.Instant
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 
@@ -18,6 +18,6 @@ class ActivityObserver @Inject constructor(
     data class Params(
         val family_id: String,
         val child_id: String,
-        val date: LocalDate = LocalDate.now()
+        val date: Instant = Instant.now()
     ) : UseCase.Params
 }

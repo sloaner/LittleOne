@@ -3,7 +3,8 @@ package com.jsloane.littleone.domain.usecases
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.repository.LittleOneRepository
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlinx.coroutines.flow.lastOrNull
 
@@ -16,7 +17,7 @@ class InviteFamilyMemberUseCase @Inject constructor(
         repository.createFamilyInvite(
             familyId = params.family_id,
             inviteCode = inviteCode,
-            inviteExpiration = LocalDateTime.now().plusDays(1L)
+            inviteExpiration = Instant.now().plus(1L, ChronoUnit.DAYS)
         )
     }
 

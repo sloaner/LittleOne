@@ -47,10 +47,10 @@ import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.util.RelativeTimeFormatter
+import com.jsloane.littleone.util.toLocalDate
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.random.Random
 
@@ -73,7 +73,7 @@ fun ActivityLog(
                     expanded = expanded == index,
                     firstItem = index <= 0,
                     lastItem = index >= list.lastIndex,
-                    time = activity.start_time.atZone(ZoneId.systemDefault()).toInstant(),
+                    time = activity.start_time,
                     duration = activity.duration,
                     activity = activity.type,
                     description = activity.type.name,
@@ -220,19 +220,18 @@ fun TimelineMarker(modifier: Modifier, content: @Composable () -> Unit) {
 
 @Preview
 @Composable
-fun previewList() {
+private fun PreviewList() {
     LittleOneTheme {
         ActivityLog(
             items = ActivityType.values().map {
                 Activity(
                     id = "",
                     type = it,
-                    start_time = LocalDateTime.now()
-                        .minusSeconds(Random.nextInt(10) * 60L * 56L * 3),
+                    start_time = Instant.now().minusSeconds(Random.nextInt(10) * 60L * 56L * 3),
                     duration = Duration.ofMinutes(Random.nextLong(0, 10)),
                     notes = ""
                 )
-            }.groupBy { it.start_time.toLocalDate() }
+            }.groupBy { it.start_time.toLocalDate(ZoneId.systemDefault()) }
         )
     }
 }

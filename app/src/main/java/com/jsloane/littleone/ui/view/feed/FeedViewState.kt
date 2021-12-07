@@ -3,6 +3,8 @@ package com.jsloane.littleone.ui.view.feed
 import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.view.feed.components.ActivityFilterState
+import com.jsloane.littleone.util.toLocalDate
+import java.time.ZoneId
 
 data class FeedViewState(
     val selectedChild: String = "",
@@ -13,7 +15,9 @@ data class FeedViewState(
         selectedFilters.isEmpty() || selectedFilters.contains(it.type)
     }
 
-    val groupedActivities = filteredActivities.groupBy { it.start_time.toLocalDate() }
+    val groupedActivities = filteredActivities.groupBy {
+        it.start_time.toLocalDate(ZoneId.systemDefault())
+    }
 
     val filters = filterGroups.mapValues { entry ->
         entry.value.map { type ->

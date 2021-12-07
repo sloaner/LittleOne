@@ -6,8 +6,8 @@ import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.Child
 import com.jsloane.littleone.domain.model.Family
 import com.jsloane.littleone.domain.repository.LittleOneRepository
+import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -56,7 +56,7 @@ class LittleOneRepositoryImpl @Inject constructor(
     override fun createFamilyInvite(
         familyId: String,
         inviteCode: String,
-        inviteExpiration: LocalDateTime
+        inviteExpiration: Instant
     ): Flow<Result<Unit>> = flow {
         emit(Result.Loading())
         api.updateFamilyInviteCode(familyId, inviteCode, inviteExpiration)

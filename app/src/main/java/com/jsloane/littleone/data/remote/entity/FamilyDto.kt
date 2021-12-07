@@ -4,7 +4,6 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.DocumentReference
 import com.jsloane.littleone.domain.model.Family
-import java.time.ZoneOffset
 
 data class FamilyDto(
     @DocumentId val id: String = "",
@@ -16,9 +15,6 @@ data class FamilyDto(
         id = id,
         users = users.map { it.id },
         inviteCode = inviteCode,
-        inviteExpiration = inviteExpiration?.toDate()
-            ?.toInstant()
-            ?.atZone(ZoneOffset.UTC)
-            ?.toLocalDateTime()
+        inviteExpiration = inviteExpiration?.toDate()?.toInstant()
     )
 }

@@ -4,6 +4,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.PropertyName
 import com.jsloane.littleone.domain.model.Child
+import com.jsloane.littleone.util.toLocalDate
 import java.time.ZoneOffset
 
 data class ChildDto(
@@ -14,6 +15,6 @@ data class ChildDto(
     fun toChild() = Child(
         id = id,
         name = name,
-        birthday = birthday.toDate().toInstant().atZone(ZoneOffset.UTC).toLocalDate()
+        birthday = birthday.toDate().toInstant().toLocalDate(ZoneOffset.UTC)
     )
 }
