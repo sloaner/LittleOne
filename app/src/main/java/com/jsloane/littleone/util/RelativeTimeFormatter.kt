@@ -1,48 +1,33 @@
 package com.jsloane.littleone.util
 
-import android.text.format.DateUtils.DAY_IN_MILLIS
-import android.text.format.DateUtils.HOUR_IN_MILLIS
-import android.text.format.DateUtils.MINUTE_IN_MILLIS
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 class RelativeTimeFormatter {
     companion object {
-        val timeFormatter = DateTimeFormatter
-            .ofPattern("hh:mm a")
-            .withZone(ZoneId.systemDefault())
-        val dayFormatter = DateTimeFormatter
-            .ofPattern("MMMM dd")
-            .withZone(ZoneId.systemDefault())
-        val dayWithYearFormatter = DateTimeFormatter
-            .ofPattern("MMMM dd, yyyy")
-            .withZone(ZoneId.systemDefault())
-
         fun format(then: Instant): String {
             val now = Instant.now()
-            val diff = now.toEpochMilli() - then.toEpochMilli()
+            val duration = Duration.between(then, now)
             return when {
-                diff < 0 ->
+                duration.isNegative ->
                     "in the future"
-                diff < 1 * MINUTE_IN_MILLIS ->
+                duration.toMinutes() < 1 ->
                     "moments ago"
-                diff < 2 * MINUTE_IN_MILLIS ->
+                duration.toMinutes() < 2 ->
                     "a minute ago"
-                diff < 60 * MINUTE_IN_MILLIS ->
-                    "${diff / MINUTE_IN_MILLIS} minutes ago"
-                diff < 61 * MINUTE_IN_MILLIS ->
+                duration.toMinutes() < 60 ->
+                    "${duration.toMinutes()} minutes ago"
+                duration.toMinutes() < 61 ->
                     "an hour ago"
-                diff < 2 * HOUR_IN_MILLIS ->
-                    "an hour and ${diff.mod(HOUR_IN_MILLIS) / MINUTE_IN_MILLIS} mins ago"
-                diff < 12 * HOUR_IN_MILLIS ->
-                    "${diff / HOUR_IN_MILLIS} hours " +
-                        "${diff.mod(HOUR_IN_MILLIS) / MINUTE_IN_MILLIS} mins ago"
-                diff < 1 * DAY_IN_MILLIS ->
-                    "${diff / HOUR_IN_MILLIS} hours ago"
+                duration.toHours() < 2 ->
+                    "an hour and ${duration.minutesPart} mins ago"
+                duration.toDays() < 1 && duration.minutesPart == 0 ->
+                    "${duration.toHours()} hours ago"
+                duration.toDays() < 1 ->
+                    "${duration.toHours()} hours ${duration.minutesPart} mins ago"
                 else ->
-                    timeFormatter.format(then).lowercase()
+                    Formatters.hour_minute_am.format(then).lowercase()
             }
         }
 
@@ -51,8 +36,28 @@ class RelativeTimeFormatter {
             return when {
                 then == today -> "Today"
                 then == today.minusDays(1) -> "Yesterday"
-                then.year == today.year -> dayFormatter.format(then)
-                else -> dayWithYearFormatter.format(then)
+                then.year == today.year -> Formatters.monthName_day.format(then)
+                else -> Formatters.monthName_day_year.format(then)
+            }
+        }
+
+        fun format(duration: Duration): String {
+            return when {
+                duration < Duration.ofMinutes(1L) ->
+                    "${duration.seconds}s"
+                duration < Duration.ofHours(1L) ->
+                    "${duration.minutesPart.zeroPad()}m ${duration.secondsPart.zeroPad()}s"
+                else ->
+                    "${duration.hoursPart}h ${duration.minutesPart.zeroPad()}m"
+            }
+        }
+
+        fun formatTimer(duration: Duration): String {
+            return when {
+                duration < Duration.ofHours(1L) ->
+                    "${duration.minutesPart.zeroPad()}:${duration.secondsPart.zeroPad()}"
+                else ->
+                    "${duration.hoursPart.zeroPad()}:${duration.minutesPart.zeroPad()}"
             }
         }
     }

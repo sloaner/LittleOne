@@ -1,14 +1,22 @@
 package com.jsloane.littleone.ui.view.feed.components
 
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +27,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Card
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
@@ -34,6 +41,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +56,7 @@ import androidx.constraintlayout.compose.Dimension
 import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
+import com.jsloane.littleone.util.Formatters
 import com.jsloane.littleone.util.RelativeTimeFormatter
 import com.jsloane.littleone.util.toLocalDate
 import java.time.Duration
@@ -66,6 +75,20 @@ fun ActivityLog(
     deleteItem: (Activity) -> Unit
 ) {
     var expanded by remember { mutableStateOf("") }
+    var now by remember { mutableStateOf(Instant.now()) }
+
+    DisposableEffect(Unit) {
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+            override fun run() {
+                now = Instant.now()
+                handler.postDelayed(this, 60_000)
+            }
+        }
+
+        handler.postDelayed(runnable, 60_000)
+        onDispose { handler.removeCallbacks(runnable) }
+    }
 
     LazyColumn(modifier = modifier.padding(vertical = 0.dp, horizontal = 8.dp)) {
         item { Spacer(modifier = Modifier.size(8.dp)) }
@@ -75,23 +98,30 @@ fun ActivityLog(
             }
             itemsIndexed(list) { index, activity ->
                 ActivityItem(
-                    expanded = expanded == activity.id,
-                    firstItem = index <= 0,
-                    lastItem = index >= list.lastIndex,
-                    time = activity.start_time,
                     duration = activity.duration,
+                    time = activity.start_time,
+                    now = now,
                     activity = activity.type,
-                    description = activity.type.name,
+                    description = activity.notes,
+                    isExpanded = expanded == activity.id,
+                    isFirstItem = index <= 0,
+                    isLastItem = index >= list.lastIndex,
                     onClick = { expanded = if (expanded == activity.id) "" else activity.id },
                     onStop = {
-                        updateItem(
+                        stopTimer(
                             activity.copy(
                                 duration = Duration.between(activity.start_time, Instant.now())
                             )
                         )
                     },
-                    onEdit = {},
-                    onDelete = { deleteItem(activity) }
+                    onEdit = {
+                        updateItem(activity)
+                        expanded = ""
+                    },
+                    onDelete = {
+                        deleteItem(activity)
+                        expanded = ""
+                    }
                 )
             }
         }
@@ -102,49 +132,77 @@ fun ActivityLog(
 @Composable
 fun ActivityItem(
     modifier: Modifier = Modifier,
-    expanded: Boolean = false,
-    firstItem: Boolean = false,
-    lastItem: Boolean = false,
     activity: ActivityType,
-    time: Instant,
-    duration: Duration,
-    description: String,
+    time: Instant = Instant.now(),
+    now: Instant = Instant.now(),
+    duration: Duration = Duration.ZERO,
+    description: String = "",
+    isExpanded: Boolean = false,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
     onClick: () -> Unit,
     onStop: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Card(
+    Surface(
         modifier = modifier.fillMaxWidth(),
-        onClick = onClick,
-        elevation = 0.dp
+        onClick = onClick
     ) {
         ConstraintLayout(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .defaultMinSize(minHeight = 42.dp)
         ) {
-            val (dividerRef, iconRef, titleRef, descRef, stopRef, editRef, deleteRef) = createRefs()
+            val (
+                timelineBarRef,
+                timelineIconRef,
+                titleRef,
+                timeAgoRef,
+                timerRef,
+                descRef,
+                stopButtonRef,
+                editButtonRef,
+                deleteButtonRef
+            ) = createRefs()
+
+            val isTimerRunning = duration.isZero && activity.features[ActivityType.FEATURE_END]
+            var timer by remember { mutableStateOf(now) }
+
+            if (isTimerRunning) {
+                DisposableEffect(Unit) {
+                    val handler = Handler(Looper.getMainLooper())
+                    val runnable = object : Runnable {
+                        override fun run() {
+                            timer = Instant.now()
+                            handler.postDelayed(this, 1_000)
+                        }
+                    }
+
+                    handler.postDelayed(runnable, 1_000)
+                    onDispose { handler.removeCallbacks(runnable) }
+                }
+            }
 
             Box(
                 modifier = Modifier
                     .width(2.dp)
                     .height(16.dp)
                     .background(MaterialTheme.colors.secondary)
-                    .constrainAs(dividerRef) {
-                        top.linkTo(if (firstItem) iconRef.bottom else parent.top)
-                        bottom.linkTo(if (lastItem) iconRef.top else parent.bottom)
+                    .constrainAs(timelineBarRef) {
+                        top.linkTo(if (isFirstItem) timelineIconRef.bottom else parent.top)
+                        bottom.linkTo(if (isLastItem) timelineIconRef.top else parent.bottom)
                         height = Dimension.fillToConstraints
 
-                        centerHorizontallyTo(iconRef)
+                        centerHorizontallyTo(timelineIconRef)
                     }
             )
 
             TimelineMarker(
                 modifier = Modifier
-                    .constrainAs(iconRef) {
+                    .constrainAs(timelineIconRef) {
+                        linkTo(top = titleRef.top, bottom = timeAgoRef.bottom)
                         start.linkTo(parent.start)
-                        linkTo(titleRef.top, descRef.bottom)
                     }
             ) {
                 Icon(
@@ -158,9 +216,9 @@ fun ActivityItem(
                 modifier = Modifier
                     .constrainAs(titleRef) {
                         linkTo(
-                            start = iconRef.end,
+                            start = timelineIconRef.end,
                             startMargin = 8.dp,
-                            end = stopRef.start,
+                            end = stopButtonRef.start,
                             endMargin = 8.dp,
                             bias = 0f
                         )
@@ -172,27 +230,51 @@ fun ActivityItem(
 
             CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
                 Text(
-                    modifier = Modifier.constrainAs(descRef) {
+                    modifier = Modifier.constrainAs(timeAgoRef) {
                         linkTo(
                             start = titleRef.start,
-                            end = stopRef.start,
+                            startMargin = 0.dp,
+                            top = titleRef.bottom,
+                            topMargin = 2.dp,
+                            end = stopButtonRef.start,
                             endMargin = 8.dp,
-                            bias = 0f
+                            bottom = parent.bottom,
+                            bottomMargin = 9.dp,
+                            horizontalBias = 0f,
+                            verticalBias = 0f
                         )
-                        top.linkTo(titleRef.bottom, 2.dp)
-                        bottom.linkTo(parent.bottom, 9.dp)
                     },
-                    text = RelativeTimeFormatter.format(time),
+                    text = if (isExpanded) {
+                        Formatters.time_month_day_year.format(time)
+                    } else {
+                        RelativeTimeFormatter.format(time)
+                    },
                     style = MaterialTheme.typography.caption
                 )
             }
 
             AnimatedVisibility(
-                modifier = Modifier.constrainAs(stopRef) {
-                    end.linkTo(if (expanded) editRef.start else parent.end)
-                    top.linkTo(titleRef.top)
+                modifier = Modifier.constrainAs(timerRef) {
+                    top.linkTo(stopButtonRef.top)
+                    end.linkTo(stopButtonRef.start)
+                    bottom.linkTo(stopButtonRef.bottom)
                 },
-                visible = duration.isZero && activity.features[ActivityType.FEATURE_END],
+                visible = isTimerRunning,
+                enter = fadeIn() + slideInVertically(),
+                exit = fadeOut() + slideOutVertically()
+            ) {
+                Text(
+                    text = RelativeTimeFormatter.formatTimer(Duration.between(time, timer)),
+                    style = MaterialTheme.typography.subtitle1
+                )
+            }
+
+            AnimatedVisibility(
+                modifier = Modifier.constrainAs(stopButtonRef) {
+                    top.linkTo(parent.top)
+                    end.linkTo(parent.end)
+                },
+                visible = isTimerRunning,
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
@@ -202,11 +284,11 @@ fun ActivityItem(
             }
 
             AnimatedVisibility(
-                modifier = Modifier.constrainAs(editRef) {
-                    end.linkTo(deleteRef.start)
-                    top.linkTo(titleRef.top)
+                modifier = Modifier.constrainAs(editButtonRef) {
+                    top.linkTo(stopButtonRef.bottom)
+                    end.linkTo(deleteButtonRef.start)
                 },
-                visible = expanded,
+                visible = isExpanded,
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
@@ -216,11 +298,11 @@ fun ActivityItem(
             }
 
             AnimatedVisibility(
-                modifier = Modifier.constrainAs(deleteRef) {
+                modifier = Modifier.constrainAs(deleteButtonRef) {
+                    top.linkTo(stopButtonRef.bottom)
                     end.linkTo(parent.end)
-                    top.linkTo(titleRef.top)
                 },
-                visible = expanded,
+                visible = isExpanded,
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
             ) {
@@ -229,7 +311,31 @@ fun ActivityItem(
                 }
             }
 
-            AnimatedVisibility(visible = expanded) {
+            AnimatedVisibility(
+                modifier = Modifier.constrainAs(descRef) {
+                    start.linkTo(timeAgoRef.start)
+                    top.linkTo(timeAgoRef.bottom, 8.dp)
+                    end.linkTo(if (isExpanded) editButtonRef.start else parent.end)
+                    width = Dimension.fillToConstraints
+                },
+                visible = isExpanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (!duration.isZero) {
+                            Text(
+                                text = "Duration: ${RelativeTimeFormatter.format(duration)}",
+                                style = MaterialTheme.typography.caption
+                            )
+                        }
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.caption
+                        )
+                    }
+                }
             }
         }
     }
@@ -273,11 +379,11 @@ private fun PreviewList() {
                         type = v,
                         start_time = Instant.now().minusSeconds(Random.nextInt(10) * 60L * 56L * 3),
                         duration = Duration.ofMinutes(Random.nextLong(0, 10)),
-                        notes = ""
+                        notes = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
                     )
-                }.groupBy {
-                    it.start_time.toLocalDate(ZoneId.systemDefault())
-                },
+                }
+                .sortedByDescending { it.start_time }
+                .groupBy { it.start_time.toLocalDate(ZoneId.systemDefault()) },
             stopTimer = {},
             updateItem = {},
             deleteItem = {}

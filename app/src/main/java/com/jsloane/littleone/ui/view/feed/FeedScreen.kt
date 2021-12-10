@@ -1,7 +1,7 @@
 package com.jsloane.littleone.ui.view.feed
 
 import android.content.res.Configuration
-import androidx.compose.animation.AnimatedVisibility
+import android.os.Parcelable
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -52,15 +52,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jsloane.littleone.R
+import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.ui.view.feed.components.ActivityLog
 import com.jsloane.littleone.ui.view.feed.components.AtAGlance
+import com.jsloane.littleone.ui.view.feed.components.EditActivitySheet
 import com.jsloane.littleone.ui.view.feed.components.FilterPanel
 import com.jsloane.littleone.ui.view.feed.components.NewActivityChoiceSheet
 import com.jsloane.littleone.ui.view.feed.components.NewActivitySheet
 import com.jsloane.littleone.util.rememberFlowWithLifecycle
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 
 @Composable
 fun FeedScreen(
@@ -89,13 +92,13 @@ internal fun FeedScreen(
     viewState: FeedViewState,
     actions: (FeedAction) -> Unit
 ) {
-    var selection: ActivityType? by rememberSaveable { mutableStateOf(null) }
+    var sheetContent: SheetContent by rememberSaveable { mutableStateOf(SheetContent.Hidden) }
 
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberScaffoldState()
     val backdropState = rememberBackdropScaffoldState(initialValue = BackdropValue.Concealed)
     val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden) {
-        if (it == ModalBottomSheetValue.Hidden) selection = null
+        if (it == ModalBottomSheetValue.Hidden) sheetContent = SheetContent.Hidden
         true
     }
     val sheetScrollState = rememberScrollState()
@@ -166,26 +169,43 @@ internal fun FeedScreen(
                                 )
                                 .size(width = 32.dp, height = 4.dp)
                         )
-                        AnimatedVisibility(visible = selection == null) {
-                            NewActivityChoiceSheet(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .verticalScroll(sheetScrollState)
-                            ) { selection = it }
-                        }
-                        AnimatedVisibility(visible = selection != null) {
-                            NewActivitySheet(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .verticalScroll(sheetScrollState),
-                                activityType = selection ?: ActivityType.LEFT_BREAST
-                            ) {
-                                actions(FeedAction.AddNewActivity(it))
-                                scope.launch {
-                                    sheetState.hide()
-                                    selection = null
+                        when (val sheet = sheetContent) {
+                            SheetContent.Hidden -> {}
+                            SheetContent.Choice -> {
+                                NewActivityChoiceSheet(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .verticalScroll(sheetScrollState)
+                                ) {
+                                    sheetContent = SheetContent.New(it)
                                 }
                             }
+                            is SheetContent.New -> {
+                                NewActivitySheet(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .verticalScroll(sheetScrollState),
+                                    activityType = sheet.type,
+                                    onSubmit = {
+                                        actions(FeedAction.AddNewActivity(it))
+                                        scope.launch {
+                                            sheetState.hide()
+                                            sheetContent = SheetContent.Hidden
+                                        }
+                                    }
+                                )
+                            }
+                            is SheetContent.Edit ->
+                                EditActivitySheet(
+                                    activity = sheet.activity,
+                                    onSubmit = {
+                                        actions(FeedAction.EditActivity(it))
+                                        scope.launch {
+                                            sheetState.hide()
+                                            sheetContent = SheetContent.Hidden
+                                        }
+                                    }
+                                )
                         }
                     }
                 }
@@ -196,7 +216,12 @@ internal fun FeedScreen(
                     backgroundColor = MaterialTheme.colors.surface,
                     floatingActionButton = {
                         FloatingActionButton(
-                            onClick = { scope.launch { sheetState.show() } }
+                            onClick = {
+                                scope.launch {
+                                    sheetContent = SheetContent.Choice
+                                    sheetState.show()
+                                }
+                            }
                         ) {
                             Icon(Icons.Default.Add, contentDescription = null)
                         }
@@ -212,7 +237,12 @@ internal fun FeedScreen(
                         ActivityLog(
                             items = viewState.groupedActivities,
                             stopTimer = { actions(FeedAction.EditActivity(it)) },
-                            updateItem = { actions(FeedAction.EditActivity(it)) },
+                            updateItem = {
+                                scope.launch {
+                                    sheetContent = SheetContent.Edit(it)
+                                    sheetState.show()
+                                }
+                            },
                             deleteItem = { actions(FeedAction.DeleteActivity(it)) }
                         )
                     }
@@ -220,6 +250,20 @@ internal fun FeedScreen(
             }
         }
     )
+}
+
+sealed class SheetContent : Parcelable {
+    @Parcelize
+    object Hidden : SheetContent()
+
+    @Parcelize
+    object Choice : SheetContent()
+
+    @Parcelize
+    class New(val type: ActivityType) : SheetContent()
+
+    @Parcelize
+    class Edit(val activity: Activity) : SheetContent()
 }
 
 @Preview

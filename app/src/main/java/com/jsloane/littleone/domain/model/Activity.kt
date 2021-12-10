@@ -1,8 +1,11 @@
 package com.jsloane.littleone.domain.model
 
+import android.os.Parcelable
 import java.time.Duration
 import java.time.Instant
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 data class Activity(
     val id: String,
     val type: ActivityType,
@@ -10,4 +13,4 @@ data class Activity(
     val duration: Duration = Duration.ZERO,
     val quantity: Float = 0f,
     val notes: String = ""
-)
+) : Parcelable

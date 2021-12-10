@@ -51,11 +51,10 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import com.jsloane.littleone.navigation.Screen
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.util.DateVisualTransformation
+import com.jsloane.littleone.util.Formatters
 import com.jsloane.littleone.util.rememberFlowWithLifecycle
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.launch
 
 @Composable
@@ -99,8 +98,6 @@ fun OnboardingScreen(
 private enum class OnboardState {
     ROOT, NEW, JOIN
 }
-
-val birthdayFormatter = DateTimeFormatter.ofPattern("MMddyyyy")
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalAnimationApi::class)
 @Composable
@@ -186,9 +183,9 @@ internal fun OnboardingScreen(
                                 picker.addOnPositiveButtonClickListener { millis ->
                                     actions(
                                         OnboardAction.UpdateBabyBirthday(
-                                            Instant.ofEpochMilli(millis)
-                                                .atZone(ZoneId.systemDefault())
-                                                .format(birthdayFormatter)
+                                            Formatters.squishedDate.format(
+                                                Instant.ofEpochMilli(millis)
+                                            )
                                         )
                                     )
                                 }
@@ -207,7 +204,7 @@ internal fun OnboardingScreen(
                         actions(
                             OnboardAction.CreateFamily(
                                 viewState.baby_name,
-                                LocalDate.parse(viewState.baby_birthday, birthdayFormatter)
+                                LocalDate.parse(viewState.baby_birthday, Formatters.squishedDate)
                             )
                         )
                     }

@@ -4,17 +4,17 @@ import android.content.Context
 import android.text.format.DateUtils.DAY_IN_MILLIS
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ContentAlpha
-import androidx.compose.material.Divider
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LocalContentAlpha
@@ -55,63 +55,41 @@ import com.jsloane.littleone.util.Formatters
 import com.jsloane.littleone.util.toLocalDate
 import com.jsloane.littleone.util.toLocalTime
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun NewActivityChoiceSheet(
+fun EditActivitySheet(
     modifier: Modifier = Modifier,
-    onClick: (ActivityType) -> Unit
-) {
-    Surface(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .width(IntrinsicSize.Max)
-                .padding(bottom = 16.dp)
-        ) {
-            NewActivitySheetHeader(header = ActivityType.Category.FEEDING)
-            NewActivitySheetRow(label = ActivityType.RIGHT_BREAST, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.LEFT_BREAST, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.BOTTLE, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.MEAL, onClick = onClick)
-
-            NewActivitySheetHeader(header = ActivityType.Category.DIAPER)
-            NewActivitySheetRow(label = ActivityType.PEE, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.POOP, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.BOTH, onClick = onClick)
-
-            NewActivitySheetHeader(header = ActivityType.Category.LEISURE)
-            NewActivitySheetRow(label = ActivityType.TUMMY_TIME, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.PLAY, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.OUTDOORS, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.BATH, onClick = onClick)
-            NewActivitySheetRow(label = ActivityType.TV, onClick = onClick)
-
-            NewActivitySheetHeader(header = ActivityType.Category.SLEEP)
-            NewActivitySheetRow(label = ActivityType.SLEEP, onClick = onClick)
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun NewActivitySheet(
-    modifier: Modifier = Modifier,
-    activityType: ActivityType,
-    startDateTime: Instant = Instant.now(),
+    activity: Activity,
     onSubmit: (Activity) -> Unit
 ) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
-    var date by remember { mutableStateOf(startDateTime.toLocalDate(ZoneId.systemDefault())) }
-    var startTime by remember { mutableStateOf(startDateTime.toLocalTime(ZoneId.systemDefault())) }
-    var endTime by remember { mutableStateOf<LocalTime?>(null) }
-    var quantity by remember { mutableStateOf(0f) }
-    var notes: String by remember { mutableStateOf("") }
+    var activityType by remember {
+        mutableStateOf(activity.type)
+    }
+    var date by remember {
+        mutableStateOf(activity.start_time.toLocalDate(ZoneId.systemDefault()))
+    }
+    var startTime by remember {
+        mutableStateOf(activity.start_time.toLocalTime(ZoneId.systemDefault()))
+    }
+    var endTime by remember {
+        mutableStateOf(
+            if (activity.duration.isZero)
+                null
+            else
+                activity.start_time.plus(activity.duration).toLocalTime(ZoneId.systemDefault())
+        )
+    }
+    var quantity by remember { mutableStateOf(activity.quantity) }
+    var notes by remember { mutableStateOf(activity.notes) }
+    var typeBoxExpanded by remember { mutableStateOf(false) }
 
     Surface(modifier = modifier) {
         Column(
@@ -119,11 +97,39 @@ fun NewActivitySheet(
                 .padding(top = 8.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-                Text(
-                    text = activityType.title,
-                    style = MaterialTheme.typography.body1
+            ExposedDropdownMenuBox(
+                expanded = typeBoxExpanded,
+                onExpandedChange = { typeBoxExpanded = !typeBoxExpanded }
+            ) {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    value = activityType.title,
+                    onValueChange = { },
+                    label = { Text("Activity Type") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = typeBoxExpanded
+                        )
+                    }
                 )
+                ExposedDropdownMenu(
+                    expanded = typeBoxExpanded,
+                    onDismissRequest = {
+                        typeBoxExpanded = false
+                    }
+                ) {
+                    ActivityType.values().forEach { selectionOption ->
+                        DropdownMenuItem(
+                            onClick = {
+                                activityType = selectionOption
+                                typeBoxExpanded = false
+                            }
+                        ) {
+                            Text(text = selectionOption.title)
+                        }
+                    }
+                }
             }
             OutlinedTextField(
                 modifier = Modifier
@@ -251,14 +257,13 @@ fun NewActivitySheet(
                 onClick = {
                     onSubmit(
                         Activity(
-                            id = "",
+                            id = activity.id,
                             type = activityType,
                             start_time = LocalDateTime
                                 .of(date, startTime)
                                 .atZone(ZoneId.systemDefault())
                                 .toInstant(),
-                            duration =
-                            if (endTime != null) {
+                            duration = if (endTime != null) {
                                 Duration.between(startTime, endTime)
                             } else {
                                 Duration.ZERO
@@ -385,26 +390,13 @@ private fun NewActivitySheetRow(
 
 @Preview
 @Composable
-private fun previewNewActivitySheet() {
+private fun PreviewEditActivitySheet() {
     LittleOneTheme {
         Column {
-            NewActivitySheet(
+            EditActivitySheet(
                 modifier = Modifier.fillMaxWidth(),
-                activityType = ActivityType.LEFT_BREAST
-            ) {}
-            Divider()
-            NewActivitySheet(
-                modifier = Modifier.fillMaxWidth(),
-                activityType = ActivityType.POOP
+                activity = Activity("", ActivityType.BOTTLE)
             ) {}
         }
-    }
-}
-
-@Preview
-@Composable
-private fun previewNewActivityChoiceSheet() {
-    LittleOneTheme {
-        NewActivityChoiceSheet(Modifier.fillMaxWidth()) {}
     }
 }

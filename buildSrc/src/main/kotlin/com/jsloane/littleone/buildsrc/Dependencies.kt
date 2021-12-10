@@ -6,7 +6,7 @@ object Versions {
 
 object Libs {
     object Tools {
-        const val androidGradlePlugin = "com.android.tools.build:gradle:7.0.3"
+        const val androidGradlePlugin = "com.android.tools.build:gradle:7.0.4"
         const val desugaring = "com.android.tools:desugar_jdk_libs:1.1.5"
     }
 
