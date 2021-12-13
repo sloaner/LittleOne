@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 interface AppSettingsRepository {
 
     val familyId: Flow<String>
+    val childId: Flow<String>
 
     fun <T> getPreference(key: Preferences.Key<T>, defaultValue: T): Flow<T>
     suspend fun <T> setPreference(key: Preferences.Key<T>, value: T)
@@ -16,6 +17,7 @@ interface AppSettingsRepository {
     companion object {
         object PreferenceKey {
             val FAMILY = stringPreferencesKey("FAMILY_KEY")
+            val CHILD = stringPreferencesKey("CHILD_KEY")
         }
     }
 }

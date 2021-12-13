@@ -7,14 +7,19 @@ import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.ActivityType
+import com.jsloane.littleone.domain.model.AtAGlanceTimeframe
+import com.jsloane.littleone.domain.model.Child
 import com.jsloane.littleone.domain.observers.ActivityObserver
 import com.jsloane.littleone.domain.observers.ChildObserver
 import com.jsloane.littleone.domain.repository.AppSettingsRepository
+import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.PreferenceKey
 import com.jsloane.littleone.domain.usecases.CreateActivityUseCase
 import com.jsloane.littleone.domain.usecases.DeleteActivityUseCase
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
 import com.jsloane.littleone.domain.usecases.UpdateActivityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,20 +40,26 @@ class FeedViewModel @Inject constructor(
     private val updateActivityUseCase: UpdateActivityUseCase,
     private val deleteActivityUseCase: DeleteActivityUseCase,
     private val childObserver: ChildObserver,
-    private val activityObserver: ActivityObserver
+    private val activityObserver: ActivityObserver,
+    private val todayActivityObserver: ActivityObserver
 ) : ViewModel() {
     private val selectedFilters = MutableStateFlow(listOf<ActivityType>())
-    private val selectedChild = MutableStateFlow("FkzZXXvYaIa3QS6IWr2P")
+    private val currentFamily = MutableStateFlow("invalid")
+    private val selectedChild = MutableStateFlow(Child())
+    private val glanceTimeframe = MutableStateFlow(AtAGlanceTimeframe.DAY)
 
     val state: StateFlow<FeedViewState> = combine(
         activityObserver.flow.filter { it is Result.Success },
+        todayActivityObserver.flow.filter { it is Result.Success },
         selectedFilters,
         selectedChild
-    ) { activities, filters, child ->
+    ) { activities, today, filters, child ->
         FeedViewState(
             activities = (activities as Result.Success<List<Activity>>).data,
+            todaysActivities = (today as Result.Success<List<Activity>>).data,
             selectedFilters = filters,
-            selectedChild = child
+            selectedChild = child,
+            timeframe = glanceTimeframe.value
         )
     }.stateIn(
         scope = viewModelScope,
@@ -59,18 +70,55 @@ class FeedViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val user_id = Firebase.auth.currentUser?.uid.orEmpty()
-            getFamilyUseCase(GetFamilyUseCase.Params(user_id)).collect {
-                when (it) {
-                    is Result.Error -> {}
-                    is Result.Loading -> {}
-                    is Result.Success -> activityObserver(
-                        ActivityObserver.Params(
-                            family_id = it.data.id,
-                            child_id = selectedChild.value
-                        )
-                    )
-                }
+            appSettingsRepository.familyId.collect {
+                currentFamily.emit(it)
+                childObserver(ChildObserver.Params(family_id = it))
             }
+        }
+        viewModelScope.launch {
+            combine(
+                childObserver.flow.filter { it is Result.Success },
+                selectedChild,
+                glanceTimeframe
+            ) { childrenRes, child, timeframe ->
+                val savedChildId = appSettingsRepository.childId.first()
+                val children = (childrenRes as Result.Success<List<Child>>).data
+
+                val default = children.firstOrNull { it.id == savedChildId }
+                    ?: children.firstOrNull()
+                    ?: return@combine
+
+                if (default.id != selectedChild.value.id) {
+                    selectedChild.emit(default)
+                    appSettingsRepository.setPreference(PreferenceKey.CHILD, default.id)
+                }
+
+                activityObserver(
+                    ActivityObserver.Params(
+                        family_id = currentFamily.value,
+                        child_id = child.id,
+                    )
+                )
+                todayActivityObserver(
+                    ActivityObserver.Params(
+                        family_id = currentFamily.value,
+                        child_id = child.id,
+                        after = when (timeframe) {
+                            AtAGlanceTimeframe.DAY -> LocalDate.now()
+                                .atStartOfDay(ZoneId.systemDefault())
+                                .toInstant()
+                            AtAGlanceTimeframe.WEEK -> LocalDate.now()
+                                .minusWeeks(1L)
+                                .atStartOfDay(ZoneId.systemDefault())
+                                .toInstant()
+                            AtAGlanceTimeframe.MONTH -> LocalDate.now()
+                                .minusMonths(1L)
+                                .atStartOfDay(ZoneId.systemDefault())
+                                .toInstant()
+                        }
+                    )
+                )
+            }.collect()
         }
     }
 
@@ -81,6 +129,7 @@ class FeedViewModel @Inject constructor(
                 is FeedAction.AddNewActivity -> addNewActivity(action.activity)
                 is FeedAction.EditActivity -> editActivity(action.activity)
                 is FeedAction.DeleteActivity -> deleteActivity(action.activity)
+                is FeedAction.ChangeTimeframe -> glanceTimeframe.emit(action.timeframe)
                 else -> {}
             }
         }
@@ -99,7 +148,7 @@ class FeedViewModel @Inject constructor(
         createActivityUseCase(
             CreateActivityUseCase.Params(
                 family_id = appSettingsRepository.familyId.first(),
-                child_id = selectedChild.value,
+                child_id = selectedChild.value.id,
                 activity = activity
             )
         ).last()
@@ -109,7 +158,7 @@ class FeedViewModel @Inject constructor(
         updateActivityUseCase(
             UpdateActivityUseCase.Params(
                 family_id = appSettingsRepository.familyId.first(),
-                child_id = selectedChild.value,
+                child_id = selectedChild.value.id,
                 activity = activity
             )
         ).last()
@@ -119,7 +168,7 @@ class FeedViewModel @Inject constructor(
         deleteActivityUseCase(
             DeleteActivityUseCase.Params(
                 family_id = appSettingsRepository.familyId.first(),
-                child_id = selectedChild.value,
+                child_id = selectedChild.value.id,
                 activityId = activity.id
             )
         ).last()

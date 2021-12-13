@@ -16,11 +16,14 @@ private tailrec fun Context.getContextActivity(): ComponentActivity? = when (thi
 val Context.activity: ComponentActivity?
     get() = getContextActivity()
 
-fun Instant.toLocalDateTime(zoneId: ZoneId) = this.atZone(zoneId).toLocalDateTime()
-fun Instant.toLocalDate(zoneId: ZoneId) = this.atZone(zoneId).toLocalDate()
-fun Instant.toLocalTime(zoneId: ZoneId) = this.atZone(zoneId).toLocalTime()
 val Duration.secondsPart get() = (this.seconds % 60).toInt()
 val Duration.minutesPart get() = (this.toMinutes() % 60).toInt()
 val Duration.hoursPart get() = (this.toHours() % 24).toInt()
+fun Instant.toLocalDate(zoneId: ZoneId = ZoneId.systemDefault()) = this.atZone(zoneId).toLocalDate()
+fun Instant.toLocalTime(zoneId: ZoneId = ZoneId.systemDefault()) = this.atZone(zoneId).toLocalTime()
+fun Instant.toLocalDateTime(zoneId: ZoneId = ZoneId.systemDefault()) =
+    this.atZone(zoneId).toLocalDateTime()
 
 fun Int.zeroPad(minLength: Int = 2): String = this.toString().padStart(minLength, '0')
+
+fun Any.equalsAny(vararg comparisons: Any) = comparisons.any { it == this }

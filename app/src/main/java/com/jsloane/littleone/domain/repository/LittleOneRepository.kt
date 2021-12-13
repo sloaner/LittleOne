@@ -27,5 +27,9 @@ interface LittleOneRepository {
     fun deleteActivity(familyId: String, childId: String, activityId: String): Flow<Result<Unit>>
 
     fun observeChildren(familyId: String): Flow<Result<List<Child>>>
-    fun observeActivities(familyId: String, childId: String): Flow<Result<List<Activity>>>
+    fun observeActivities(
+        familyId: String,
+        childId: String,
+        after: Instant = Instant.EPOCH
+    ): Flow<Result<List<Activity>>>
 }

@@ -124,11 +124,12 @@ class LittleOneRepositoryImpl @Inject constructor(
 
     override fun observeActivities(
         familyId: String,
-        childId: String
+        childId: String,
+        after: Instant
     ): Flow<Result<List<Activity>>> =
         merge(
             flow { emit(Result.Loading(listOf<Activity>())) },
-            api.observeActivities(familyId, childId).map {
+            api.observeActivities(familyId, childId, after).map {
                 Result.Success(it.mapNotNull { activity -> activity?.toActivity() })
             }
         )

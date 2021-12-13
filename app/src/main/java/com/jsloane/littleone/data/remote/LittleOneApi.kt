@@ -185,7 +185,11 @@ class LittleOneApi {
         awaitClose { childrenListener.remove() }
     }
 
-    fun observeActivities(familyId: String, childId: String): Flow<List<ActivityDto?>> =
+    fun observeActivities(
+        familyId: String,
+        childId: String,
+        after: Instant = Instant.EPOCH
+    ): Flow<List<ActivityDto?>> =
         callbackFlow {
             val queryHandler = EventListener<QuerySnapshot> { value, error ->
                 val list: List<ActivityDto?> =
@@ -200,6 +204,7 @@ class LittleOneApi {
                 .document(childId)
                 .collection(Collections.Activity.id)
                 .orderBy(Collections.Activity.Field.start_time, Query.Direction.DESCENDING)
+                .endAt(Timestamp(after.epochSecond, 0))
                 .limit(100)
                 .addSnapshotListener(queryHandler)
 
@@ -224,7 +229,7 @@ private sealed class Collections(val id: String) {
 
     object Child : Collections("child") {
         object Field {
-            const val firstName = "firstName"
+            const val name = "name"
             const val birthday = "birthday"
         }
     }

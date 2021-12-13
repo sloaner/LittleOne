@@ -107,7 +107,7 @@ internal fun FeedScreen(
         scaffoldState = backdropState,
         appBar = {
             TopAppBar(
-                title = { Text("Backdrop scaffold") },
+                title = { Text(viewState.selectedChild.name) },
                 navigationIcon = {
                     Crossfade(targetState = backdropState.isConcealed) {
                         if (it) {
@@ -231,7 +231,10 @@ internal fun FeedScreen(
                         AtAGlance(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 16.dp)
+                                .padding(horizontal = 24.dp, vertical = 16.dp),
+                            items = viewState.glanceActivities,
+                            timeframe = viewState.timeframe,
+                            changeTimeframe = { actions(FeedAction.ChangeTimeframe(it)) }
                         )
                         Divider()
                         ActivityLog(

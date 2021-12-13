@@ -13,11 +13,11 @@ class ActivityObserver @Inject constructor(
     private val repository: LittleOneRepository
 ) : ObservableUseCase<ActivityObserver.Params, List<Activity>>() {
     override fun createObservable(params: Params): Flow<Result<List<Activity>>> =
-        repository.observeActivities(params.family_id, params.child_id)
+        repository.observeActivities(params.family_id, params.child_id, params.after)
 
     data class Params(
         val family_id: String,
         val child_id: String,
-        val date: Instant = Instant.now()
+        val after: Instant = Instant.EPOCH
     ) : UseCase.Params
 }

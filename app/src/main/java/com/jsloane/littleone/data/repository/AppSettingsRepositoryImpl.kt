@@ -20,6 +20,9 @@ class AppSettingsRepositoryImpl(
     override val familyId: Flow<String>
         get() = getPreference(PreferenceKey.FAMILY, "")
 
+    override val childId: Flow<String>
+        get() = getPreference(PreferenceKey.CHILD, "")
+
     override fun <T> getPreference(key: Preferences.Key<T>, defaultValue: T): Flow<T> {
         return settingsDataStore.data.map { it[key] ?: defaultValue }
     }

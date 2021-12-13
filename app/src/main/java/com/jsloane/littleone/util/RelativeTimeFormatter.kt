@@ -46,9 +46,20 @@ class RelativeTimeFormatter {
                 duration < Duration.ofMinutes(1L) ->
                     "${duration.seconds}s"
                 duration < Duration.ofHours(1L) ->
-                    "${duration.minutesPart.zeroPad()}m ${duration.secondsPart.zeroPad()}s"
+                    "${duration.minutesPart}m ${duration.secondsPart.zeroPad()}s"
                 else ->
-                    "${duration.hoursPart}h ${duration.minutesPart.zeroPad()}m"
+                    "${duration.toHours()}h ${duration.minutesPart.zeroPad()}m"
+            }
+        }
+
+        fun formatEstimate(duration: Duration): String {
+            return when {
+                duration < Duration.ofMinutes(1L) ->
+                    "${duration.seconds} seconds"
+                duration < Duration.ofHours(3L) ->
+                    "${duration.toMinutes()} minutes"
+                else ->
+                    "${duration.toHours()} hours"
             }
         }
 
@@ -57,7 +68,7 @@ class RelativeTimeFormatter {
                 duration < Duration.ofHours(1L) ->
                     "${duration.minutesPart.zeroPad()}:${duration.secondsPart.zeroPad()}"
                 else ->
-                    "${duration.hoursPart.zeroPad()}:${duration.minutesPart.zeroPad()}"
+                    "${duration.toHours()}:${duration.minutesPart.zeroPad()}"
             }
         }
     }
