@@ -15,7 +15,7 @@ import com.jsloane.littleone.domain.repository.AppSettingsRepository
 import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.PreferenceKey
 import com.jsloane.littleone.domain.usecases.CreateActivityUseCase
 import com.jsloane.littleone.domain.usecases.DeleteActivityUseCase
-import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
+import com.jsloane.littleone.domain.usecases.GetFamilyIdUseCase
 import com.jsloane.littleone.domain.usecases.UpdateActivityUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.stateIn
@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val appSettingsRepository: AppSettingsRepository,
-    private val getFamilyUseCase: GetFamilyUseCase,
+    private val getFamilyIdUseCase: GetFamilyIdUseCase,
     private val createActivityUseCase: CreateActivityUseCase,
     private val updateActivityUseCase: UpdateActivityUseCase,
     private val deleteActivityUseCase: DeleteActivityUseCase,
@@ -49,14 +49,14 @@ class FeedViewModel @Inject constructor(
     private val glanceTimeframe = MutableStateFlow(AtAGlanceTimeframe.DAY)
 
     val state: StateFlow<FeedViewState> = combine(
-        activityObserver.flow.filter { it is Result.Success },
-        todayActivityObserver.flow.filter { it is Result.Success },
+        activityObserver.flow.filterIsInstance<Result.Success<List<Activity>>>(),
+        todayActivityObserver.flow.filterIsInstance<Result.Success<List<Activity>>>(),
         selectedFilters,
         selectedChild
     ) { activities, today, filters, child ->
         FeedViewState(
-            activities = (activities as Result.Success<List<Activity>>).data,
-            todaysActivities = (today as Result.Success<List<Activity>>).data,
+            activities = activities.data,
+            todaysActivities = today.data,
             selectedFilters = filters,
             selectedChild = child,
             timeframe = glanceTimeframe.value
@@ -70,19 +70,26 @@ class FeedViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val user_id = Firebase.auth.currentUser?.uid.orEmpty()
-            appSettingsRepository.familyId.collect {
-                currentFamily.emit(it)
-                childObserver(ChildObserver.Params(family_id = it))
+            getFamilyIdUseCase(GetFamilyIdUseCase.Params(user_id)).collect {
+                when (it) {
+                    is Result.Error -> {}
+                    is Result.Loading -> {}
+                    is Result.Success -> {
+                        currentFamily.emit(it.data)
+                        childObserver(ChildObserver.Params(family_id = it.data))
+                    }
+                }
             }
         }
+
         viewModelScope.launch {
             combine(
-                childObserver.flow.filter { it is Result.Success },
+                childObserver.flow.filterIsInstance<Result.Success<List<Child>>>(),
                 selectedChild,
                 glanceTimeframe
             ) { childrenRes, child, timeframe ->
                 val savedChildId = appSettingsRepository.childId.first()
-                val children = (childrenRes as Result.Success<List<Child>>).data
+                val children = childrenRes.data
 
                 val default = children.firstOrNull { it.id == savedChildId }
                     ?: children.firstOrNull()

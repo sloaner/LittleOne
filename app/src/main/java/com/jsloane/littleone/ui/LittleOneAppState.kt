@@ -4,11 +4,10 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 
-@OptIn(ExperimentalMaterialApi::class)
-class LittleOneAppState {
-    val items = listOf("Songs", "Artists", "Playlists")
-    var selectedNavItem = 0
-}
+data class LittleOneAppState(
+    val isAuthenticated: Boolean = false,
+    val isOnboarded: Boolean = false
+)
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable

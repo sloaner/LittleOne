@@ -8,14 +8,9 @@ import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.domain.repository.AppSettingsRepository
 import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.PreferenceKey
 import com.jsloane.littleone.ui.view.feed.FeedAction
-import com.jsloane.littleone.ui.view.feed.FeedViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -23,18 +18,6 @@ class SettingsViewModel @Inject constructor(
     appSettingsRepository: AppSettingsRepository
 ) : ViewModel() {
     private val selectedFilters = MutableStateFlow(listOf<ActivityType>())
-    private val selectedChild = MutableStateFlow("FkzZXXvYaIa3QS6IWr2P")
-
-    val state: StateFlow<FeedViewState> = combine(
-        selectedFilters,
-        selectedChild
-    ) { filters, child ->
-        FeedViewState()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = FeedViewState.Empty
-    )
 
     init {
         viewModelScope.launch {

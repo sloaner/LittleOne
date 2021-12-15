@@ -57,18 +57,22 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             authStateObserver.flow.collect {
                 when (it) {
-                    is Result.Error -> TODO()
-                    is Result.Loading -> TODO()
+                    is Result.Error -> {}
+                    is Result.Loading -> {}
                     is Result.Success -> if (it.data) {
                         getFamily(
                             GetFamilyUseCase.Params(
                                 user_id = Firebase.auth.currentUser?.uid.orEmpty()
                             )
                         ).collect { family ->
-                            if (family == null) {
-                                pendingNavigation.emit(LoginAction.OpenOnboarding)
-                            } else {
-                                pendingNavigation.emit(LoginAction.OpenActivityLog)
+                            when (family) {
+                                is Result.Loading -> {}
+                                is Result.Error -> {
+                                    pendingNavigation.emit(LoginAction.OpenOnboarding)
+                                }
+                                is Result.Success -> {
+                                    pendingNavigation.emit(LoginAction.OpenActivityLog)
+                                }
                             }
                         }
                     }
