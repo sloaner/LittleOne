@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <color name="pink_medium">#FFF7BACF</color>
-  <color name="pink_dark">#FFAB6F84</color>
-  <color name="pink_light">#FFFFEEFF</color>
-  <color name="green_medium">#FF5EAB64</color>
-  <color name="green_dark">#FF2D7B38</color>
+  <color name="purple_dark">#FF413D8A</color>
+  <color name="blush_light">#FFEFDDE0</color>
+  <color name="blush_dark">#FFDFC4C8</color>
+  <color name="purple_gray">#FFC3BBC6</color>
+  <color name="off_white">#FFFEF8F9</color>
   <color name="dark_text">#FF121212</color>
-  <color name="light_text">#FFFFFFFF</color>
   <color name="black">#FF000000</color>
   <color name="white">#FFFFFFFF</color>
 </resources>
