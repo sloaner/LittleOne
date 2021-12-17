@@ -9,11 +9,11 @@ import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.usecases.CreateChildUseCase
 import com.jsloane.littleone.domain.usecases.CreateFamilyUseCase
 import com.jsloane.littleone.domain.usecases.JoinFamilyByInviteCodeUseCase
-import com.jsloane.littleone.navigation.Screen
+import com.jsloane.littleone.navigation.Destination
+import com.jsloane.littleone.navigation.NavigationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,26 +28,21 @@ class OnboardViewModel @Inject constructor(
     private val createChildUseCase: CreateChildUseCase,
     private val joinFamilyByInviteCodeUseCase: JoinFamilyByInviteCodeUseCase
 ) : ViewModel() {
-    private val pendingActions = MutableSharedFlow<OnboardAction>()
-
     val babyName = MutableStateFlow("")
     val babyBirthday = MutableStateFlow("")
     val inviteCode = MutableStateFlow("")
-    val navigateTo = MutableStateFlow<Screen?>(null)
 
     private val loadingState = MutableStateFlow<Result<Unit>>(Result.Loading())
 
     val state: StateFlow<OnboardViewState> = combine(
         babyName,
         babyBirthday,
-        inviteCode,
-        navigateTo
-    ) { name, birthday, code, navigate ->
+        inviteCode
+    ) { name, birthday, code ->
         OnboardViewState(
             baby_name = name,
             baby_birthday = birthday,
             invite_code = code,
-            navigateTo = navigate
         )
     }.stateIn(
         scope = viewModelScope,
@@ -55,20 +50,20 @@ class OnboardViewModel @Inject constructor(
         initialValue = OnboardViewState.Empty
     )
 
-    init {
+    fun submitAction(action: OnboardAction) {
         viewModelScope.launch {
-            pendingActions.collect { action ->
-                when (action) {
-                    is OnboardAction.CreateFamily -> registerNewFamily(
-                        action.childName,
-                        action.childBirthday
-                    )
-                    is OnboardAction.JoinFamily -> joinFamily(
-                        action.inviteCode
-                    )
-                    else -> {
-                    }
-                }
+            when (action) {
+                OnboardAction.OpenActivityLog -> NavigationManager.navigate(Destination.Feed)
+
+                is OnboardAction.UpdateBabyName -> babyName.emit(action.name)
+                is OnboardAction.UpdateBabyBirthday -> babyBirthday.emit(action.birthday)
+                is OnboardAction.UpdateInviteCode -> inviteCode.emit(action.inviteCode)
+
+                is OnboardAction.JoinFamily -> joinFamily(action.inviteCode)
+                is OnboardAction.CreateFamily -> registerNewFamily(
+                    action.childName,
+                    action.childBirthday
+                )
             }
         }
     }
@@ -96,7 +91,7 @@ class OnboardViewModel @Inject constructor(
                     is Result.Error -> loadingState.emit(Result.Error(it.message))
                     is Result.Loading -> TODO()
                     is Result.Success -> {
-                        navigateTo.emit(Screen.Feed)
+                        NavigationManager.navigate(Destination.Feed)
                     }
                 }
             }
@@ -115,15 +110,9 @@ class OnboardViewModel @Inject constructor(
                 )
             ).collect {
                 Log.d("I", "$it")
-                navigateTo.emit(Screen.Feed)
+                NavigationManager.navigate(Destination.Feed)
             }
         } catch (e: Exception) {
-        }
-    }
-
-    fun submitAction(action: OnboardAction) {
-        viewModelScope.launch {
-            pendingActions.emit(action)
         }
     }
 }

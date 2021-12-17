@@ -78,8 +78,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    openActivityLog: () -> Unit,
-    openOnboarding: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val viewState by rememberFlowWithLifecycle(viewModel.state)
@@ -87,19 +85,7 @@ fun LoginScreen(
 
     LoginScreen(
         viewState = viewState,
-        actions = {
-            when (it) {
-                is LoginAction.OpenActivityLog -> {
-                    openActivityLog()
-                }
-                is LoginAction.OpenOnboarding -> {
-                    openOnboarding()
-                }
-                else -> {
-                    viewModel.submitAction(it)
-                }
-            }
-        }
+        actions = { viewModel.submitAction(it) }
     )
 }
 

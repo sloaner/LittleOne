@@ -11,6 +11,8 @@ import com.jsloane.littleone.base.Result
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.observers.AuthStateObserver
 import com.jsloane.littleone.domain.usecases.GetFamilyUseCase
+import com.jsloane.littleone.navigation.Destination
+import com.jsloane.littleone.navigation.NavigationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,6 +83,24 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    fun submitAction(action: LoginAction) {
+        viewModelScope.launch {
+            when (action) {
+                LoginAction.OpenOnboarding -> NavigationManager.navigate(Destination.Onboarding)
+                LoginAction.OpenActivityLog -> NavigationManager.navigate(Destination.Feed)
+
+                is LoginAction.UpdateEmail -> email.emit(action.email)
+                is LoginAction.UpdatePassword -> password.emit(action.password)
+
+                is LoginAction.SignInToken -> signInWithCredentials(action.intent)
+                is LoginAction.SignInEmail -> signInWithEmailAndPassword(
+                    email.value,
+                    password.value
+                )
+            }
+        }
+    }
+
     private fun signInWithEmailAndPassword(email: String, password: String) =
         viewModelScope.launch {
             try {
@@ -107,22 +127,6 @@ class LoginViewModel @Inject constructor(
             loadingState.emit(Result.Success(Unit))
         } catch (e: Exception) {
             loadingState.emit(Result.Error(e.message.orEmpty()))
-        }
-    }
-
-    fun submitAction(action: LoginAction) {
-        viewModelScope.launch {
-            when (action) {
-                is LoginAction.UpdateEmail -> email.emit(action.email)
-                is LoginAction.UpdatePassword -> password.emit(action.password)
-                is LoginAction.SignInEmail -> signInWithEmailAndPassword(
-                    email.value,
-                    password.value
-                )
-                is LoginAction.SignInToken -> signInWithCredentials(action.intent)
-                else -> {
-                }
-            }
         }
     }
 }

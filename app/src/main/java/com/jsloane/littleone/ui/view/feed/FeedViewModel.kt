@@ -5,11 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.Result
+import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.model.Activity
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.domain.model.AtAGlanceTimeframe
 import com.jsloane.littleone.domain.model.Child
 import com.jsloane.littleone.domain.observers.ActivityObserver
+import com.jsloane.littleone.domain.observers.AuthStateObserver
 import com.jsloane.littleone.domain.observers.ChildObserver
 import com.jsloane.littleone.domain.repository.AppSettingsRepository
 import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.PreferenceKey
@@ -17,6 +19,8 @@ import com.jsloane.littleone.domain.usecases.CreateActivityUseCase
 import com.jsloane.littleone.domain.usecases.DeleteActivityUseCase
 import com.jsloane.littleone.domain.usecases.GetFamilyIdUseCase
 import com.jsloane.littleone.domain.usecases.UpdateActivityUseCase
+import com.jsloane.littleone.navigation.Destination
+import com.jsloane.littleone.navigation.NavigationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import java.time.ZoneId
@@ -41,7 +45,8 @@ class FeedViewModel @Inject constructor(
     private val deleteActivityUseCase: DeleteActivityUseCase,
     private val childObserver: ChildObserver,
     private val activityObserver: ActivityObserver,
-    private val todayActivityObserver: ActivityObserver
+    private val todayActivityObserver: ActivityObserver,
+    private val authStateObserver: AuthStateObserver
 ) : ViewModel() {
     private val selectedFilters = MutableStateFlow(listOf<ActivityType>())
     private val currentFamily = MutableStateFlow("invalid")
@@ -52,14 +57,16 @@ class FeedViewModel @Inject constructor(
         activityObserver.flow.filterIsInstance<Result.Success<List<Activity>>>(),
         todayActivityObserver.flow.filterIsInstance<Result.Success<List<Activity>>>(),
         selectedFilters,
-        selectedChild
-    ) { activities, today, filters, child ->
+        selectedChild,
+        authStateObserver.flow.filterIsInstance<Result.Success<Boolean>>()
+    ) { activities, today, filters, child, auth ->
         FeedViewState(
             activities = activities.data,
             todaysActivities = today.data,
             selectedFilters = filters,
             selectedChild = child,
-            timeframe = glanceTimeframe.value
+            timeframe = glanceTimeframe.value,
+            isAuthenticated = auth.data
         )
     }.stateIn(
         scope = viewModelScope,
@@ -68,6 +75,9 @@ class FeedViewModel @Inject constructor(
     )
 
     init {
+        viewModelScope.launch {
+            authStateObserver(UseCase.Params.Empty)
+        }
         viewModelScope.launch {
             val user_id = Firebase.auth.currentUser?.uid.orEmpty()
             getFamilyIdUseCase(GetFamilyIdUseCase.Params(user_id)).collect {
@@ -132,12 +142,15 @@ class FeedViewModel @Inject constructor(
     fun submitAction(action: FeedAction) {
         viewModelScope.launch {
             when (action) {
+                is FeedAction.OpenSettings -> NavigationManager.navigate(Destination.Settings)
+                is FeedAction.OpenLogin -> NavigationManager.navigate(Destination.Login)
+
+                is FeedAction.ChangeTimeframe -> glanceTimeframe.emit(action.timeframe)
                 is FeedAction.UpdateSelectedFilters -> updateSelectedFilters(action.filter)
+
                 is FeedAction.AddNewActivity -> addNewActivity(action.activity)
                 is FeedAction.EditActivity -> editActivity(action.activity)
                 is FeedAction.DeleteActivity -> deleteActivity(action.activity)
-                is FeedAction.ChangeTimeframe -> glanceTimeframe.emit(action.timeframe)
-                else -> {}
             }
         }
     }

@@ -6,6 +6,7 @@ import com.jsloane.littleone.domain.model.AtAGlanceTimeframe
 
 sealed class FeedAction {
     object OpenSettings : FeedAction()
+    object OpenLogin : FeedAction()
     class UpdateSelectedFilters(val filter: ActivityType) : FeedAction()
     class AddNewActivity(val activity: Activity) : FeedAction()
     class EditActivity(val activity: Activity) : FeedAction()

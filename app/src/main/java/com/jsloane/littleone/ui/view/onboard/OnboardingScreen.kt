@@ -30,7 +30,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,18 +47,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.material.datepicker.MaterialDatePicker
-import com.jsloane.littleone.navigation.Screen
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.util.DateVisualTransformation
 import com.jsloane.littleone.util.Formatters
 import com.jsloane.littleone.util.rememberFlowWithLifecycle
 import java.time.Instant
 import java.time.LocalDate
-import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
-    openActivityLog: () -> Unit,
     inviteCode: String? = null,
     viewModel: OnboardViewModel = hiltViewModel()
 ) {
@@ -67,31 +63,9 @@ fun OnboardingScreen(
         .collectAsState(initial = OnboardViewState.Empty)
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = true) {
-        viewModel.navigateTo
-    }
-
     OnboardingScreen(
         viewState = viewState,
-        actions = {
-            when (it) {
-                OnboardAction.OpenActivityLog -> openActivityLog()
-
-                is OnboardAction.UpdateBabyName -> scope.launch {
-                    viewModel.babyName.emit(it.name)
-                }
-                is OnboardAction.UpdateBabyBirthday -> scope.launch {
-                    viewModel.babyBirthday.emit(it.birthday)
-                }
-                is OnboardAction.UpdateInviteCode -> scope.launch {
-                    viewModel.inviteCode.emit(it.inviteCode)
-                }
-
-                else -> {
-                    viewModel.submitAction(it)
-                }
-            }
-        }
+        actions = { viewModel.submitAction(it) }
     )
 }
 
@@ -109,12 +83,6 @@ internal fun OnboardingScreen(
     val scrollState = rememberScrollState()
 
     var selectedScreen by remember { mutableStateOf(OnboardState.ROOT) }
-
-    when (viewState.navigateTo) {
-        is Screen.Feed -> actions(OnboardAction.OpenActivityLog)
-        else -> {
-        }
-    }
 
     Column(
         modifier = Modifier

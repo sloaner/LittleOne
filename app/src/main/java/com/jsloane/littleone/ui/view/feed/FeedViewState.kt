@@ -15,7 +15,8 @@ data class FeedViewState(
     val selectedFilters: List<ActivityType> = emptyList(),
     val activities: List<Activity> = emptyList(),
     val todaysActivities: List<Activity> = emptyList(),
-    val timeframe: AtAGlanceTimeframe = AtAGlanceTimeframe.DAY
+    val timeframe: AtAGlanceTimeframe = AtAGlanceTimeframe.DAY,
+    val isAuthenticated: Boolean = false
 ) {
     val filteredActivities = activities.filter {
         selectedFilters.isEmpty() || selectedFilters.contains(it.type)

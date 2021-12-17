@@ -7,7 +7,6 @@ import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.domain.repository.AppSettingsRepository
 import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.PreferenceKey
-import com.jsloane.littleone.ui.view.feed.FeedAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,15 +20,23 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            Firebase.auth.signOut()
+            appSettingsRepository.setPreference(PreferenceKey.CHILD, "")
             appSettingsRepository.setPreference(PreferenceKey.FAMILY, "")
+            Firebase.auth.signOut()
         }
     }
 
-    fun submitAction(action: FeedAction) {
+    fun submitAction(action: SettingsAction) {
         viewModelScope.launch {
             when (action) {
-                else -> {}
+                SettingsAction.OpenLogin -> TODO()
+                SettingsAction.OpenSettings -> TODO()
+
+                is SettingsAction.ChangeTimeframe -> TODO()
+                is SettingsAction.DeleteActivity -> TODO()
+                is SettingsAction.EditActivity -> TODO()
+                is SettingsAction.UpdateSelectedFilters -> TODO()
+                is SettingsAction.AddNewActivity -> TODO()
             }
         }
     }
