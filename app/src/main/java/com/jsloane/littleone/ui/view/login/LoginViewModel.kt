@@ -15,9 +15,11 @@ import com.jsloane.littleone.navigation.Destination
 import com.jsloane.littleone.navigation.NavigationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -30,22 +32,22 @@ class LoginViewModel @Inject constructor(
     getFamily: GetFamilyUseCase
 ) : ViewModel() {
 
-    private val pendingNavigation = MutableStateFlow<LoginAction?>(null)
     private val email = MutableStateFlow("")
     private val password = MutableStateFlow("")
+    private val _snackbarFlow = MutableSharedFlow<String>()
+    val snackbarFlow = _snackbarFlow.asSharedFlow()
 
     private val loadingState = MutableStateFlow<Result<Unit>>(Result.Loading())
 
     val state: StateFlow<LoginViewState> = combine(
-        pendingNavigation,
         authStateObserver.flow,
         email,
         password
-    ) { navigation, authState, email, password ->
+    ) { authState, email, password ->
         LoginViewState(
-            pendingNavigation = navigation,
             email = email,
-            password = password
+            password = password,
+            snackbar = snackbarFlow
         )
     }.stateIn(
         scope = viewModelScope,
@@ -70,10 +72,10 @@ class LoginViewModel @Inject constructor(
                             when (family) {
                                 is Result.Loading -> {}
                                 is Result.Error -> {
-                                    pendingNavigation.emit(LoginAction.OpenOnboarding)
+                                    submitAction(LoginAction.OpenOnboarding)
                                 }
                                 is Result.Success -> {
-                                    pendingNavigation.emit(LoginAction.OpenActivityLog)
+                                    submitAction(LoginAction.OpenActivityLog)
                                 }
                             }
                         }
@@ -97,6 +99,33 @@ class LoginViewModel @Inject constructor(
                     email.value,
                     password.value
                 )
+                is LoginAction.ForgotPassword -> forgotPassword(email.value)
+                is LoginAction.RegisterUser -> registerAccount(
+                    action.user,
+                    action.pass
+                )
+            }
+        }
+    }
+
+    private fun registerAccount(email: String, password: String) {
+        viewModelScope.launch {
+            val res = Firebase.auth.createUserWithEmailAndPassword(email, password).await()
+        }
+    }
+
+    private fun forgotPassword(email: String) {
+        viewModelScope.launch {
+            if (email.isBlank()) {
+                println(_snackbarFlow.subscriptionCount.value)
+                _snackbarFlow.emit("Enter an email address and try again")
+            } else {
+                try {
+                    Firebase.auth.sendPasswordResetEmail(email).await()
+                    _snackbarFlow.emit("Reset password email sent")
+                } catch (e: Throwable) {
+                    _snackbarFlow.emit(e.message ?: "Unable to send recovery email.")
+                }
             }
         }
     }

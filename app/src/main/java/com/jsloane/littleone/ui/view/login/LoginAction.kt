@@ -5,8 +5,12 @@ import android.content.Intent
 sealed class LoginAction {
     object OpenActivityLog : LoginAction()
     object OpenOnboarding : LoginAction()
+
     class UpdateEmail(val email: String) : LoginAction()
     class UpdatePassword(val password: String) : LoginAction()
-    class SignInEmail() : LoginAction()
+
+    object SignInEmail : LoginAction()
     class SignInToken(val intent: Intent) : LoginAction()
+    class RegisterUser(val user: String, val pass: String) : LoginAction()
+    object ForgotPassword : LoginAction()
 }

@@ -32,8 +32,9 @@ import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +48,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -74,6 +76,7 @@ import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.util.activity
 import com.jsloane.littleone.util.rememberFlowWithLifecycle
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
@@ -95,15 +98,12 @@ internal fun LoginScreen(
     viewState: LoginViewState,
     actions: (LoginAction) -> Unit
 ) {
-    val scaffoldState = rememberScaffoldState()
+    val scaffoldState = rememberBottomSheetScaffoldState()
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
 
     val context = LocalContext.current
-
-    if (viewState.pendingNavigation != null) {
-        actions(viewState.pendingNavigation)
-    }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -112,8 +112,15 @@ internal fun LoginScreen(
             }
         }
 
+    LaunchedEffect(key1 = viewState) {
+        viewState.snackbar.collectLatest {
+            scaffoldState.snackbarHostState.showSnackbar(it)
+        }
+    }
+
     BoxWithConstraints {
         BottomSheetScaffold(
+            scaffoldState = scaffoldState,
             backgroundColor = MaterialTheme.colors.primary,
             sheetPeekHeight = maxHeight * 0.75f,
             sheetGesturesEnabled = false,
@@ -160,7 +167,7 @@ internal fun LoginScreen(
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 keyboardController?.hide()
-                                actions(LoginAction.SignInEmail())
+                                actions(LoginAction.SignInEmail)
                             }
                         )
                     )
@@ -169,7 +176,7 @@ internal fun LoginScreen(
                         modifier = Modifier
                             .align(Alignment.End)
                             .padding(bottom = 24.dp),
-                        onClick = {}
+                        onClick = { actions(LoginAction.ForgotPassword) }
                     ) {
                         Text("Forgot Password")
                     }
@@ -181,7 +188,7 @@ internal fun LoginScreen(
                             .height(56.dp),
                         shape = RoundedCornerShape(50),
                         onClick = {
-                            actions(LoginAction.SignInEmail())
+                            actions(LoginAction.SignInEmail)
                         }
                     ) {
                         Text(text = "Login", style = MaterialTheme.typography.h6)
@@ -346,6 +353,10 @@ internal fun LoginScreen(
 //            }
 //        }
 //    }
+}
+
+@Composable
+fun LoginForm(modifier: Modifier = Modifier) {
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
