@@ -41,7 +41,11 @@ class LittleOneRepositoryImpl @Inject constructor(
     ): Flow<Result<Family>> = flow {
         emit(Result.Loading())
         api.findFamilyByInviteCode(inviteCode)?.toFamily()?.let {
-            emit(Result.Success(it))
+            // TODO: Workaround for Firestore bug
+            if (it.inviteExpiration?.isBefore(Instant.now()) == true)
+                null
+            else
+                emit(Result.Success(it))
         } ?: emit(Result.Error("Error!"))
     }
 
@@ -53,13 +57,19 @@ class LittleOneRepositoryImpl @Inject constructor(
         emit(Result.Success(id))
     }
 
-    override fun createFamilyInvite(
+    override fun createInviteCode(
         familyId: String,
         inviteCode: String,
         inviteExpiration: Instant
     ): Flow<Result<Unit>> = flow {
         emit(Result.Loading())
         api.updateFamilyInviteCode(familyId, inviteCode, inviteExpiration)
+        emit(Result.Success(Unit))
+    }
+
+    override fun deleteInviteCode(familyId: String): Flow<Result<Unit>> = flow {
+        emit(Result.Loading())
+        api.updateFamilyInviteCode(familyId, "", Instant.EPOCH)
         emit(Result.Success(Unit))
     }
 

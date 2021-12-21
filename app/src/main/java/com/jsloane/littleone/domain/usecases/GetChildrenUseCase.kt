@@ -22,7 +22,7 @@ class GetChildrenUseCase @Inject constructor(
     override fun doWork(params: Params): Flow<Result<Family>> = flow {
         val cached = appSettings.familyId.first()
         if (cached.isNotBlank()) {
-            repository.getFamily(cached)
+            emitAll(repository.getFamily(cached))
         } else {
             emitAll(
                 repository.findFamily(params.user_id).onEach {

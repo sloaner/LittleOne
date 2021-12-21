@@ -56,7 +56,7 @@ fun LittleOneNavGraph(
         }
 
         composable(Screen.Settings.route) {
-            SettingsScreen()
+            SettingsScreen(navigateUp = { navController.navigateUp() })
         }
     }
 

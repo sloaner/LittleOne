@@ -56,10 +56,11 @@ class LittleOneApi {
                 Collections.Family.Field.inviteCode,
                 inviteCode
             )
-            .whereGreaterThanOrEqualTo(
-                Collections.Family.Field.inviteExpiration,
-                Timestamp(Instant.now().epochSecond, 0)
-            )
+            // TODO: This seems to be broken in Firestore. Will fix once I move to a permanent API.
+            // .whereGreaterThanOrEqualTo(
+            //    Collections.Family.Field.inviteExpiration,
+            //    Timestamp(Instant.now().epochSecond, 0)
+            // )
             .get()
             .await()
 

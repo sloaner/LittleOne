@@ -9,6 +9,7 @@ import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.P
 import com.jsloane.littleone.domain.repository.LittleOneRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
@@ -25,8 +26,8 @@ class GetFamilyIdUseCase @Inject constructor(
             try {
                 val response = repository
                     .findFamily(params.user_id)
-                    .first { it is Result.Success<Family> }
-                    as Result.Success<Family>
+                    .filterIsInstance<Result.Success<Family>>()
+                    .first()
                 appSettings.setPreference(PreferenceKey.FAMILY, response.data.id)
                 emit(Result.Success(response.data.id))
             } catch (e: Throwable) {

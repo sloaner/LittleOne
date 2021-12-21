@@ -123,13 +123,15 @@ internal fun FeedScreen(
                     }
                 },
                 actions = {
-                    IconButton(
-                        onClick = { actions(FeedAction.OpenSettings) }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(id = R.string.screen_feed)
-                        )
+                    if (viewState.isAuthenticated) {
+                        IconButton(
+                            onClick = { actions(FeedAction.OpenSettings) }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = stringResource(id = R.string.screen_feed)
+                            )
+                        }
                     }
                 },
                 elevation = 0.dp,

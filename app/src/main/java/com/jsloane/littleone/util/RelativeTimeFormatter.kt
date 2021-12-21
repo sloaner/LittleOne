@@ -6,33 +6,37 @@ import java.time.LocalDate
 
 class RelativeTimeFormatter {
     companion object {
-        fun format(then: Instant): String {
-            val now = Instant.now()
+        fun format(then: Instant, now: Instant = Instant.now()): String {
             val duration = Duration.between(then, now)
-            return when {
-                duration.isNegative ->
-                    "in the future"
-                duration.toMinutes() < 1 ->
-                    "moments ago"
-                duration.toMinutes() < 2 ->
-                    "a minute ago"
-                duration.toMinutes() < 60 ->
-                    "${duration.toMinutes()} minutes ago"
-                duration.toMinutes() < 61 ->
-                    "an hour ago"
-                duration.toHours() < 2 ->
-                    "an hour and ${duration.minutesPart} mins ago"
-                duration.toDays() < 1 && duration.minutesPart == 0 ->
-                    "${duration.toHours()} hours ago"
-                duration.toDays() < 1 ->
-                    "${duration.toHours()} hours ${duration.minutesPart} mins ago"
+            val absDuration = duration.abs()
+            val base = when {
+                absDuration.toMinutes() < 1 ->
+                    "moments"
+                absDuration.toMinutes() < 2 ->
+                    "a minute"
+                absDuration.toMinutes() < 60 ->
+                    "${absDuration.toMinutes()} minutes"
+                absDuration.toMinutes() < 61 ->
+                    "an hour"
+                absDuration.toHours() < 2 ->
+                    "an hour and ${absDuration.minutesPart} mins"
+                absDuration.toDays() < 1 && absDuration.minutesPart == 0 ->
+                    "${absDuration.toHours()} hours"
+                absDuration.toDays() < 1 ->
+                    "${absDuration.toHours()} hours ${absDuration.minutesPart} mins"
                 else ->
                     Formatters.hour_minute_am.format(then).lowercase()
             }
+
+            return when {
+                duration.toDays() < 0 -> base
+                duration.isNegative -> "in $base"
+                duration.toDays() < 1 -> "$base ago"
+                else -> base
+            }
         }
 
-        fun format(then: LocalDate): String {
-            val today = LocalDate.now()
+        fun format(then: LocalDate, today: LocalDate = LocalDate.now()): String {
             return when {
                 then == today -> "Today"
                 then == today.minusDays(1) -> "Yesterday"
