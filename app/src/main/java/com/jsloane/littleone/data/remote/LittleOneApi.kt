@@ -98,12 +98,16 @@ class LittleOneApi {
     }
 
     suspend fun updateFamilyUsers(familyId: String, userId: String) {
+        val userRef = Firebase.firestore
+            .collection(Collections.User.id)
+            .document(userId)
+
         Firebase.firestore
             .collection(Collections.Family.id)
             .document(familyId)
             .update(
                 Collections.Family.Field.users,
-                FieldValue.arrayUnion(userId)
+                FieldValue.arrayUnion(userRef)
             ).await()
     }
 

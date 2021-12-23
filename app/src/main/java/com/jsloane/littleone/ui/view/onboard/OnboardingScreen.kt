@@ -249,7 +249,7 @@ fun ExpandingButton(
             )
             .clip(RoundedCornerShape(24.dp))
             .background(MaterialTheme.colors.surface)
-            .clickable(enabled = !contentVisible) {
+            .clickable {
                 onClick()
             }
             .padding(8.dp)

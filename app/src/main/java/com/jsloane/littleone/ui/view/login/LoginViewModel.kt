@@ -111,6 +111,7 @@ class LoginViewModel @Inject constructor(
     private fun registerAccount(email: String, password: String) {
         viewModelScope.launch {
             val res = Firebase.auth.createUserWithEmailAndPassword(email, password).await()
+            println(res.user?.uid.orEmpty())
         }
     }
 

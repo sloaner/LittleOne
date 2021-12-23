@@ -24,7 +24,7 @@ android {
     minSdk 23
     targetSdk 31
     versionCode 1
-    versionName "1.0"
+    versionName "0.1.0"
 
     buildConfigField "String", "GOOGLE_CLIENT_ID", '"' + propOrDef("GOOGLE_CLIENT_ID", "") + '"'
 
@@ -51,7 +51,7 @@ android {
     }
 
     release {
-      minifyEnabled false
+      minifyEnabled true
       signingConfig signingConfigs.debug
       proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }

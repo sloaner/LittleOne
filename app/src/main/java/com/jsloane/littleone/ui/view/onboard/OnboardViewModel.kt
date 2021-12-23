@@ -110,7 +110,8 @@ class OnboardViewModel @Inject constructor(
                 )
             ).collect {
                 Log.d("I", "$it")
-                NavigationManager.navigate(Destination.Feed)
+                if (it is Result.Success<Unit>)
+                    NavigationManager.navigate(Destination.Feed)
             }
         } catch (e: Exception) {
         }

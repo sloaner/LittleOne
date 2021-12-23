@@ -7,6 +7,7 @@ import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.repository.LittleOneRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.withContext
 
 class JoinFamilyByInviteCodeUseCase @Inject constructor(
@@ -27,7 +28,7 @@ class JoinFamilyByInviteCodeUseCase @Inject constructor(
                         FirebaseFirestoreException.Code.NOT_FOUND
                     )
                 is Result.Loading -> {}
-                is Result.Success -> repository.updateFamilyUsers(it.data.id, params.userId)
+                is Result.Success -> repository.updateFamilyUsers(it.data.id, params.userId).last()
             }
         }
     }

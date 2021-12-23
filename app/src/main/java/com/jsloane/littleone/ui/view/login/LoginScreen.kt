@@ -24,6 +24,8 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.SnackbarResult
@@ -33,6 +35,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -101,6 +104,8 @@ internal fun LoginScreen(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
+    val registrationSheetState =
+        rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -119,182 +124,156 @@ internal fun LoginScreen(
     }
 
     BoxWithConstraints {
-        BottomSheetScaffold(
-            scaffoldState = scaffoldState,
-            backgroundColor = MaterialTheme.colors.primary,
-            sheetPeekHeight = maxHeight * 0.75f,
-            sheetGesturesEnabled = false,
-            sheetShape = RoundedCornerShape(
-                topStart = 12.dp,
-                topEnd = 12.dp,
-                bottomEnd = 0.dp,
-                bottomStart = 0.dp
-            ),
+        ModalBottomSheetLayout(
+            sheetState = registrationSheetState,
             sheetContent = {
-                Column(
-                    modifier = Modifier
-                        .padding(horizontal = 20.dp, vertical = 10.dp)
-                        .verticalScroll(scrollState),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    val (focusRequester) = FocusRequester.createRefs()
-                    val keyboardController = LocalSoftwareKeyboardController.current
+                RegistrationSheet { user, pass ->
+                    actions(LoginAction.RegisterUser(user, pass))
+                }
+            }
+        ) {
+            BottomSheetScaffold(
+                scaffoldState = scaffoldState,
+                backgroundColor = MaterialTheme.colors.primary,
+                sheetPeekHeight = maxHeight * 0.75f,
+                sheetGesturesEnabled = false,
+                sheetShape = RoundedCornerShape(
+                    topStart = 12.dp,
+                    topEnd = 12.dp,
+                    bottomEnd = 0.dp,
+                    bottomStart = 0.dp
+                ),
+                sheetContent = {
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp, vertical = 10.dp)
+                            .verticalScroll(scrollState),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        val (focusRequester) = FocusRequester.createRefs()
+                        val keyboardController = LocalSoftwareKeyboardController.current
 
-                    //region Login Form
-                    OutlinedTextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        value = viewState.email,
-                        onValueChange = { actions(LoginAction.UpdateEmail(it)) },
-                        label = { Text("Email") },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusRequester.requestFocus() }
+                        //region Login Form
+                        LoginForm(
+                            modifier = Modifier.fillMaxWidth(),
+                            email = viewState.email,
+                            password = viewState.password,
+                            emailUpdated = { actions(LoginAction.UpdateEmail(it)) },
+                            passwordUpdated = { actions(LoginAction.UpdatePassword(it)) },
+                            onDone = { actions(LoginAction.SignInEmail) }
                         )
-                    )
-                    PasswordTextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                            .focusRequester(focusRequester),
-                        value = viewState.password,
-                        onValueChange = { actions(LoginAction.UpdatePassword(it)) },
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                keyboardController?.hide()
+
+                        TextButton(
+                            modifier = Modifier
+                                .align(Alignment.End)
+                                .padding(bottom = 24.dp),
+                            onClick = { actions(LoginAction.ForgotPassword) }
+                        ) {
+                            Text("Forgot Password")
+                        }
+
+                        Button(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp)
+                                .height(56.dp),
+                            shape = RoundedCornerShape(50),
+                            onClick = {
                                 actions(LoginAction.SignInEmail)
                             }
-                        )
-                    )
-
-                    TextButton(
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .padding(bottom = 24.dp),
-                        onClick = { actions(LoginAction.ForgotPassword) }
-                    ) {
-                        Text("Forgot Password")
-                    }
-
-                    Button(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 16.dp)
-                            .height(56.dp),
-                        shape = RoundedCornerShape(50),
-                        onClick = {
-                            actions(LoginAction.SignInEmail)
-                        }
-                    ) {
-                        Text(text = "Login", style = MaterialTheme.typography.h6)
-                    }
-                    //endregion
-
-                    //region Register Row
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Don’t have an account?",
-                            style = MaterialTheme.typography.body2
-                        )
-                        TextButton(
-                            onClick = {}
                         ) {
-                            Text(text = "Sign up")
+                            Text(text = "Login", style = MaterialTheme.typography.h6)
                         }
-                    }
-                    //endregion
+                        //endregion
 
-                    //region 3rd Party Buttons
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .background(MaterialTheme.colors.onSurface)
-                                .weight(1f)
-                        )
-                        Text(
-                            modifier = Modifier.padding(8.dp),
-                            text = "or login with",
-                            style = MaterialTheme.typography.body2
-                        )
-                        Box(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .background(MaterialTheme.colors.onSurface)
-                                .weight(1f)
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 32.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        ThirdPartyLoginButton(
-                            Modifier
-                                .height(56.dp)
-                                .fillMaxWidth(1f)
-                                .weight(1f),
-                            shape = RoundedCornerShape(50),
-                            onClick = {
-                                launcher.launch(
-                                    GoogleSignIn.getClient(
-                                        context,
-                                        GoogleSignInOptions
-                                            .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                            .requestIdToken(BuildConfig.GOOGLE_CLIENT_ID)
-                                            .requestEmail()
-                                            .build()
-                                    ).signInIntent
-                                )
+                        //region Register Row
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Don’t have an account?",
+                                style = MaterialTheme.typography.body2
+                            )
+                            TextButton(
+                                onClick = {
+                                    scope.launch {
+                                        registrationSheetState.show()
+                                    }
+                                }
+                            ) {
+                                Text(text = "Sign up")
                             }
+                        }
+                        //endregion
+
+                        //region 3rd Party Buttons
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.img_logo_google),
-                                contentDescription = null
+                            Box(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .background(MaterialTheme.colors.onSurface)
+                                    .weight(1f)
+                            )
+                            Text(
+                                modifier = Modifier.padding(8.dp),
+                                text = "or login with",
+                                style = MaterialTheme.typography.body2
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .height(1.dp)
+                                    .background(MaterialTheme.colors.onSurface)
+                                    .weight(1f)
                             )
                         }
-                        ThirdPartyLoginButton(
-                            Modifier
-                                .height(56.dp)
-                                .fillMaxWidth(1f)
-                                .weight(1f),
-                            shape = RoundedCornerShape(50),
-                            onClick = {
-                                val pendingResultTask = Firebase.auth.pendingAuthResult
-                                if (pendingResultTask != null) {
-                                    pendingResultTask.addOnSuccessListener {
-//                                        actions(LoginAction.OpenActivityLog)
-                                    }.addOnFailureListener {
-                                        showErrorSnackbar(
-                                            snackbarHostState = scaffoldState.snackbarHostState,
-                                            scope = scope,
-                                            throwable = it
-                                        )
-                                    }
-                                } else {
-                                    context.activity?.let { activity ->
-                                        Firebase.auth.startActivityForSignInWithProvider(
-                                            activity,
-                                            OAuthProvider.newBuilder(GithubAuthProvider.PROVIDER_ID)
-                                                .setScopes(listOf("user:email"))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 32.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            ThirdPartyLoginButton(
+                                Modifier
+                                    .height(56.dp)
+                                    .fillMaxWidth(1f)
+                                    .weight(1f),
+                                shape = RoundedCornerShape(50),
+                                onClick = {
+                                    launcher.launch(
+                                        GoogleSignIn.getClient(
+                                            context,
+                                            GoogleSignInOptions
+                                                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                                .requestIdToken(BuildConfig.GOOGLE_CLIENT_ID)
+                                                .requestEmail()
                                                 .build()
-                                        ).addOnSuccessListener {
-//                                            actions(LoginAction.OpenActivityLog)
+                                        ).signInIntent
+                                    )
+                                }
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.img_logo_google),
+                                    contentDescription = null
+                                )
+                            }
+                            ThirdPartyLoginButton(
+                                Modifier
+                                    .height(56.dp)
+                                    .fillMaxWidth(1f)
+                                    .weight(1f),
+                                shape = RoundedCornerShape(50),
+                                onClick = {
+                                    val pendingResultTask = Firebase.auth.pendingAuthResult
+                                    if (pendingResultTask != null) {
+                                        pendingResultTask.addOnSuccessListener {
+//                                        actions(LoginAction.OpenActivityLog)
                                         }.addOnFailureListener {
                                             showErrorSnackbar(
                                                 snackbarHostState = scaffoldState.snackbarHostState,
@@ -302,102 +281,168 @@ internal fun LoginScreen(
                                                 throwable = it
                                             )
                                         }
+                                    } else {
+                                        context.activity?.let { activity ->
+                                            Firebase.auth.startActivityForSignInWithProvider(
+                                                activity,
+                                                OAuthProvider.newBuilder(GithubAuthProvider.PROVIDER_ID)
+                                                    .setScopes(listOf("user:email"))
+                                                    .build()
+                                            ).addOnSuccessListener {
+//                                            actions(LoginAction.OpenActivityLog)
+                                            }.addOnFailureListener {
+                                                showErrorSnackbar(
+                                                    snackbarHostState = scaffoldState.snackbarHostState,
+                                                    scope = scope,
+                                                    throwable = it
+                                                )
+                                            }
+                                        }
                                     }
                                 }
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.img_logo_github),
+                                    contentDescription = null,
+                                    colorFilter = ColorFilter.tint(MaterialTheme.colors.onSurface)
+                                )
                             }
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.img_logo_github),
-                                contentDescription = null,
-                                colorFilter = ColorFilter.tint(MaterialTheme.colors.onSurface)
-                            )
                         }
+                        //endregion
                     }
-                    //endregion
                 }
-            }
-        ) {
-            Row(
-                modifier = Modifier.height(maxHeight * 0.25f),
-                verticalAlignment = Alignment.Bottom
             ) {
-                Image(
-                    modifier = Modifier
-                        .weight(1f)
-                        .zIndex(100f),
-                    painter = painterResource(id = R.drawable.ic_logo),
-                    contentDescription = null
-                )
-                Text(
-                    modifier = Modifier
-                        .weight(1f),
-                    lineHeight = TextUnit(42f, TextUnitType.Sp),
-                    textAlign = TextAlign.Start,
-                    text = stringResource(id = R.string.app_name).lowercase().replace(' ', '\n'),
-                    style = MaterialTheme.typography.h3
-                )
+                Row(
+                    modifier = Modifier.height(maxHeight * 0.25f),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .weight(1f)
+                            .zIndex(100f),
+                        painter = painterResource(id = R.drawable.ic_logo),
+                        contentDescription = null
+                    )
+                    Text(
+                        modifier = Modifier
+                            .weight(1f),
+                        lineHeight = TextUnit(42f, TextUnitType.Sp),
+                        textAlign = TextAlign.Start,
+                        text = stringResource(id = R.string.app_name).lowercase()
+                            .replace(' ', '\n'),
+                        style = MaterialTheme.typography.h3
+                    )
+                }
             }
         }
     }
-//    Scaffold(
-//        scaffoldState = scaffoldState,
-//        backgroundColor = MaterialTheme.colors.primary
-//    ) {
-//        Column(modifier = Modifier.fillMaxSize()) {
-//            Surface(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .offset(y = (-20).dp),
-//                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-//            ) {
-//            }
-//        }
-//    }
-}
-
-@Composable
-fun LoginForm(modifier: Modifier = Modifier) {
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun PasswordTextField(
+fun LoginForm(
     modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: @Composable (() -> Unit)? = { Text("Password") },
-    keyboardOptions: KeyboardOptions = KeyboardOptions(
-        keyboardType = KeyboardType.Password,
-        imeAction = ImeAction.Done
-    ),
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    email: String,
+    password: String,
+    emailUpdated: (String) -> Unit,
+    passwordUpdated: (String) -> Unit,
+    onDone: (() -> Unit)? = null
 ) {
+    val (focusRequester) = FocusRequester.createRefs()
+    val keyboardController = LocalSoftwareKeyboardController.current
     var passwordVisibility by remember { mutableStateOf(false) }
 
-    OutlinedTextField(
+    Column(
         modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        label = label,
-        singleLine = true,
-        visualTransformation = when (passwordVisibility) {
-            true -> VisualTransformation.None
-            false -> PasswordVisualTransformation()
-        },
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        trailingIcon = {
-            IconButton(
-                onClick = { passwordVisibility = !passwordVisibility }
-            ) {
-                val icon = when (passwordVisibility) {
-                    true -> Icons.Default.Visibility
-                    false -> Icons.Default.VisibilityOff
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = email,
+            onValueChange = emailUpdated,
+            label = { Text("Email") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(onNext = { focusRequester.requestFocus() })
+        )
+
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
+            value = password,
+            onValueChange = passwordUpdated,
+            label = { Text("Password") },
+            singleLine = true,
+            visualTransformation = when (passwordVisibility) {
+                true -> VisualTransformation.None
+                false -> PasswordVisualTransformation()
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    onDone?.let {
+                        keyboardController?.hide()
+                        it()
+                    }
                 }
-                Icon(icon, "")
+            ),
+            trailingIcon = {
+                IconButton(
+                    onClick = { passwordVisibility = !passwordVisibility }
+                ) {
+                    val icon = when (passwordVisibility) {
+                        true -> Icons.Default.Visibility
+                        false -> Icons.Default.VisibilityOff
+                    }
+                    Icon(icon, "")
+                }
             }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun RegistrationSheet(
+    modifier: Modifier = Modifier,
+    onSubmit: (String, String) -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Register new account",
+            style = MaterialTheme.typography.subtitle1
+        )
+        LoginForm(
+            modifier = Modifier
+                .fillMaxWidth(),
+            email = email,
+            password = password,
+            emailUpdated = { email = it },
+            passwordUpdated = { password = it }
+        )
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            shape = RoundedCornerShape(50),
+            onClick = { onSubmit(email, password) }
+        ) {
+            Text(text = "Register", style = MaterialTheme.typography.button)
         }
-    )
+    }
 }
 
 fun showErrorSnackbar(
