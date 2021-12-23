@@ -11,7 +11,7 @@ object Libs {
     }
 
     object Accompanist {
-        const val version = "0.20.1"
+        const val version = "0.20.3"
         const val insets = "com.google.accompanist:accompanist-insets:$version"
         const val systemuicontroller = "com.google.accompanist:accompanist-systemuicontroller:$version"
         const val flowlayouts = "com.google.accompanist:accompanist-flowlayout:$version"
@@ -27,7 +27,7 @@ object Libs {
     }
 
     object Coroutines {
-        private const val version = "1.5.2"
+        private const val version = "1.6.0"
         const val core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$version"
         const val android = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$version"
         const val playServices = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$version"
@@ -39,24 +39,24 @@ object Libs {
     }
 
     object PlayServices {
-        const val auth = "com.google.android.gms:play-services-auth:19.2.0"
+        const val auth = "com.google.android.gms:play-services-auth:20.0.0"
     }
 
     object Firebase {
         const val gradlePlugin = "com.google.gms:google-services:4.3.10"
-        const val bom = "com.google.firebase:firebase-bom:29.0.0"
+        const val bom = "com.google.firebase:firebase-bom:29.0.3"
         const val analytics = "com.google.firebase:firebase-analytics-ktx"
         const val auth = "com.google.firebase:firebase-auth-ktx"
         const val firestore = "com.google.firebase:firebase-firestore-ktx"
     }
 
     object Hilt {
-        private const val version = "2.40"
+        private const val version = "2.40.5"
         const val gradlePlugin = "com.google.dagger:hilt-android-gradle-plugin:$version"
         const val compiler = "com.google.dagger:hilt-android-compiler:$version"
         const val hilt = "com.google.dagger:hilt-android:$version"
         const val testing = "com.google.dagger:hilt-android-testing:$version"
-        const val compose = "androidx.hilt:hilt-navigation-compose:1.0.0-alpha03"
+        const val compose = "androidx.hilt:hilt-navigation-compose:1.0.0-rc01"
     }
 
     object AndroidX {
@@ -79,7 +79,7 @@ object Libs {
 
         object UI {
             const val activityCompose = "androidx.activity:activity-compose:1.4.0"
-            const val appcompat = "androidx.appcompat:appcompat:1.3.1"
+            const val appcompat = "androidx.appcompat:appcompat:1.4.0"
             const val constraintLayoutCompose =
                 "androidx.constraintlayout:constraintlayout-compose:1.0.0-rc02"
         }
@@ -95,7 +95,7 @@ object Libs {
         }
 
         object Navigation {
-            const val navigationCompose = "androidx.navigation:navigation-compose:2.4.0-alpha10"
+            const val navigationCompose = "androidx.navigation:navigation-compose:2.4.0-rc01"
         }
 
         object Test {

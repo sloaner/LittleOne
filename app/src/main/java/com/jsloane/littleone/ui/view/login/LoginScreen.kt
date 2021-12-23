@@ -285,14 +285,16 @@ internal fun LoginScreen(
                                         context.activity?.let { activity ->
                                             Firebase.auth.startActivityForSignInWithProvider(
                                                 activity,
-                                                OAuthProvider.newBuilder(GithubAuthProvider.PROVIDER_ID)
+                                                OAuthProvider
+                                                    .newBuilder(GithubAuthProvider.PROVIDER_ID)
                                                     .setScopes(listOf("user:email"))
                                                     .build()
                                             ).addOnSuccessListener {
 //                                            actions(LoginAction.OpenActivityLog)
                                             }.addOnFailureListener {
                                                 showErrorSnackbar(
-                                                    snackbarHostState = scaffoldState.snackbarHostState,
+                                                    snackbarHostState =
+                                                    scaffoldState.snackbarHostState,
                                                     scope = scope,
                                                     throwable = it
                                                 )

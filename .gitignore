@@ -1,6 +1,7 @@
 # built application files
 *.apk
 *.ap_
+*.aab
 
 # Mac files
 .DS_Store
@@ -14,10 +15,12 @@
 # generated files
 bin/
 gen/
+build/
 
 # Ignore gradle files
 .gradle/
-build/
+gradle.properties
+
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -39,4 +42,6 @@ proguard-project.txt
 .externalNativeBuild
 .cxx
 
-gradle.properties
+
+*.pepk
+*.keystore
