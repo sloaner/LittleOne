@@ -29,7 +29,7 @@ enum class ActivityType(
         "Bottle",
         Category.FEEDING,
         "BOTTLE",
-        BitSet.valueOf(longArrayOf(0b1111)),
+        BitSet.valueOf(longArrayOf(0b1101)),
         R.drawable.ic_activity_bottle
     ),
     MEAL(
@@ -111,9 +111,10 @@ enum class ActivityType(
     }
 
     companion object {
-        val FEATURE_DATE = 3
-        val FEATURE_START = 2
-        val FEATURE_END = 1
-        val FEATURE_QUANTITY = 0
+        // set using longArrayOf(0b3210)
+        val FEATURE_DATE = 3 //Has date
+        val FEATURE_START = 2 // Has start time
+        val FEATURE_END = 1 // Has an end time (if false duration is always 0)
+        val FEATURE_QUANTITY = 0 // Has a quantity
     }
 }

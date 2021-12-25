@@ -210,7 +210,7 @@ class LittleOneApi {
                 .collection(Collections.Activity.id)
                 .orderBy(Collections.Activity.Field.start_time, Query.Direction.DESCENDING)
                 .endAt(Timestamp(after.epochSecond, 0))
-                .limit(100)
+//                .limit(100)
                 .addSnapshotListener(queryHandler)
 
             awaitClose { childrenListener.remove() }

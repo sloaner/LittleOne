@@ -75,7 +75,7 @@ class OnboardViewModel @Inject constructor(
                 CreateFamilyUseCase.Params(Firebase.auth.currentUser?.uid.orEmpty())
             ).collect {
                 when (it) {
-                    is Result.Error -> TODO()
+                    is Result.Error -> {}
                     is Result.Loading -> loadingState.emit(Result.Loading())
                     is Result.Success -> familyId = it.data
                 }
@@ -89,7 +89,7 @@ class OnboardViewModel @Inject constructor(
             ).collect {
                 when (it) {
                     is Result.Error -> loadingState.emit(Result.Error(it.message))
-                    is Result.Loading -> TODO()
+                    is Result.Loading -> {}
                     is Result.Success -> {
                         NavigationManager.navigate(Destination.Feed)
                     }

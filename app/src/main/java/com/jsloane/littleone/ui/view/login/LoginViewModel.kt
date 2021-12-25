@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -140,7 +141,8 @@ class LoginViewModel @Inject constructor(
 
                 loadingState.emit(Result.Success(Unit))
             } catch (e: Exception) {
-                loadingState.emit(Result.Error(e.message.orEmpty()))
+                _snackbarFlow.emit(e.message.orEmpty())
+                println(e.message.orEmpty())
             }
         }
 
@@ -149,14 +151,15 @@ class LoginViewModel @Inject constructor(
             loadingState.emit(Result.Loading())
 
             val task = GoogleSignIn.getSignedInAccountFromIntent(intent)
-            val account = task.result
+            val account = task.getResult(ApiException::class.java)
             val credential = GoogleAuthProvider.getCredential(account.idToken, null)
 
             Firebase.auth.signInWithCredential(credential).await()
 
             loadingState.emit(Result.Success(Unit))
         } catch (e: Exception) {
-            loadingState.emit(Result.Error(e.message.orEmpty()))
+            _snackbarFlow.emit(e.message.orEmpty())
+            println(e.message.orEmpty())
         }
     }
 }

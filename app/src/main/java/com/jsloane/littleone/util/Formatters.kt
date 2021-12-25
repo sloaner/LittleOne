@@ -20,5 +20,5 @@ object Formatters {
         DateTimeFormatter.ofPattern("hh:mm").withZone(ZoneId.systemDefault())
 
     val squishedDate: DateTimeFormatter =
-        DateTimeFormatter.ofPattern("MMddyyyy")
+        DateTimeFormatter.ofPattern("MMddyyyy").withZone(ZoneId.systemDefault())
 }
