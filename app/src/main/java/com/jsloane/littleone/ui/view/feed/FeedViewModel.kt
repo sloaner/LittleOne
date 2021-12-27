@@ -54,20 +54,32 @@ class FeedViewModel @Inject constructor(
     private val glanceTimeframe = MutableStateFlow(AtAGlanceTimeframe.DAY)
 
     val state: StateFlow<FeedViewState> = combine(
-        activityObserver.flow.filterIsInstance<Result.Success<List<Activity>>>(),
-        todayActivityObserver.flow.filterIsInstance<Result.Success<List<Activity>>>(),
+        activityObserver.flow,
+        todayActivityObserver.flow,
         selectedFilters,
         selectedChild,
         authStateObserver.flow.filterIsInstance<Result.Success<Boolean>>()
     ) { activities, today, filters, child, auth ->
-        FeedViewState(
-            activities = activities.data,
-            todaysActivities = today.data,
-            selectedFilters = filters,
-            selectedChild = child,
-            timeframe = glanceTimeframe.value,
-            isAuthenticated = auth.data
-        )
+        if (activities is Result.Loading<*> || today is Result.Loading<*>) {
+            FeedViewState(
+                selectedFilters = filters,
+                selectedChild = child,
+                timeframe = glanceTimeframe.value,
+                isAuthenticated = auth.data,
+                isLoading = true
+            )
+        } else if (activities is Result.Success<List<Activity>> && today is Result.Success<List<Activity>>) {
+            FeedViewState(
+                activities = activities.data,
+                todaysActivities = today.data,
+                selectedFilters = filters,
+                selectedChild = child,
+                timeframe = glanceTimeframe.value,
+                isAuthenticated = auth.data
+            )
+        } else {
+            FeedViewState.Empty
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

@@ -3,6 +3,7 @@ package com.jsloane.littleone.util
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 class RelativeTimeFormatter {
     companion object {
@@ -73,6 +74,15 @@ class RelativeTimeFormatter {
                     "${duration.minutesPart.zeroPad()}:${duration.secondsPart.zeroPad()}"
                 else ->
                     "${duration.toHours()}:${duration.minutesPart.zeroPad()}"
+            }
+        }
+
+        fun formatTimerShort(duration: Duration): String {
+            return when {
+                duration < Duration.ofHours(1L) ->
+                    "${duration.minutesPart}m"
+                else ->
+                    "${duration.toMinutes().div(6f).roundToInt().div(10f)}h"
             }
         }
     }

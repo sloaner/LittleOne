@@ -23,8 +23,8 @@ android {
     applicationId "com.jsloane.littleone"
     minSdk 23
     targetSdk 31
-    versionCode 3
-    versionName "0.1.2"
+    versionCode 4
+    versionName "0.1.3"
 
     buildConfigField "String", "GOOGLE_CLIENT_ID", '"' + propOrDef("GOOGLE_CLIENT_ID", "") + '"'
 

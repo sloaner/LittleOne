@@ -247,7 +247,8 @@ fun ActivityItem(
                     text = if (isExpanded) {
                         Formatters.time_month_day_year.format(time)
                     } else {
-                        RelativeTimeFormatter.format(time)
+                        "${RelativeTimeFormatter.format(time)}" +
+                                " • ${RelativeTimeFormatter.formatTimerShort(duration)}"
                     },
                     style = MaterialTheme.typography.caption
                 )

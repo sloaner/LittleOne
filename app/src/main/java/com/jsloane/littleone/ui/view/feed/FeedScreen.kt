@@ -25,6 +25,7 @@ import androidx.compose.material.FabPosition
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
@@ -235,6 +236,11 @@ internal fun FeedScreen(
                                 changeTimeframe = { actions(FeedAction.ChangeTimeframe(it)) }
                             )
                             Divider()
+                            if(viewState.isLoading) {
+                                LinearProgressIndicator(
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                             ActivityLog(
                                 items = viewState.groupedActivities,
                                 stopTimer = { actions(FeedAction.EditActivity(it)) },
