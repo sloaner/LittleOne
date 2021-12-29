@@ -70,6 +70,8 @@ class RelativeTimeFormatter {
 
         fun formatTimer(duration: Duration): String {
             return when {
+                duration.isNegative ->
+                    "0:00"
                 duration < Duration.ofHours(1L) ->
                     "${duration.minutesPart.zeroPad()}:${duration.secondsPart.zeroPad()}"
                 else ->
@@ -79,6 +81,10 @@ class RelativeTimeFormatter {
 
         fun formatTimerShort(duration: Duration): String {
             return when {
+                duration.isNegative ->
+                    "0s"
+                duration < Duration.ofMinutes(1L) ->
+                    "${duration.secondsPart}s"
                 duration < Duration.ofHours(1L) ->
                     "${duration.minutesPart}m"
                 else ->

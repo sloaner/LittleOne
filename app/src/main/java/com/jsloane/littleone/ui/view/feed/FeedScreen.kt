@@ -298,6 +298,6 @@ sealed class SheetContent : Parcelable {
 @Composable
 private fun Preview() {
     LittleOneTheme {
-        FeedScreen(FeedViewState.Empty) {}
+        FeedScreen(FeedViewState(isAuthenticated = true)) {}
     }
 }
