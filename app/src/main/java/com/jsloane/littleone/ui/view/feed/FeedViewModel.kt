@@ -2,6 +2,10 @@ package com.jsloane.littleone.ui.view.feed
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.jsloane.littleone.base.Result
@@ -21,6 +25,7 @@ import com.jsloane.littleone.domain.usecases.GetFamilyIdUseCase
 import com.jsloane.littleone.domain.usecases.UpdateActivityUseCase
 import com.jsloane.littleone.navigation.Destination
 import com.jsloane.littleone.navigation.NavigationManager
+import com.jsloane.littleone.util.TimerWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import java.time.ZoneId
@@ -29,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -46,7 +52,8 @@ class FeedViewModel @Inject constructor(
     private val childObserver: ChildObserver,
     private val activityObserver: ActivityObserver,
     private val todayActivityObserver: ActivityObserver,
-    private val authStateObserver: AuthStateObserver
+    private val authStateObserver: AuthStateObserver,
+    private val workManager: WorkManager
 ) : ViewModel() {
     private val selectedFilters = MutableStateFlow(listOf<ActivityType>())
     private val currentFamily = MutableStateFlow("invalid")
@@ -68,7 +75,10 @@ class FeedViewModel @Inject constructor(
                 isAuthenticated = auth.data,
                 isLoading = true
             )
-        } else if (activities is Result.Success<List<Activity>> && today is Result.Success<List<Activity>>) {
+        } else if (
+            activities is Result.Success<List<Activity>> &&
+            today is Result.Success<List<Activity>>
+        ) {
             FeedViewState(
                 activities = activities.data,
                 todaysActivities = today.data,
@@ -148,6 +158,27 @@ class FeedViewModel @Inject constructor(
                     )
                 )
             }.collect()
+        }
+
+        viewModelScope.launch {
+            activityObserver.flow
+                .filterIsInstance<Result.Success<List<Activity>>>()
+                .collectLatest { result ->
+                    result.data
+                        .take(10)
+                        .filter { it.isTimerRunning }
+                        .forEach {
+                            val request = OneTimeWorkRequestBuilder<TimerWorker>()
+                                .setInputData(
+                                    workDataOf(
+                                        TimerWorker.FAMILY_ID_KEY to currentFamily.value,
+                                        TimerWorker.CHILD_ID_KEY to selectedChild.value.id,
+                                        TimerWorker.ACTIVITY_ID_KEY to it.id
+                                    )
+                                ).build()
+                            workManager.enqueueUniqueWork(it.id, ExistingWorkPolicy.KEEP, request)
+                        }
+                }
         }
     }
 

@@ -13,4 +13,10 @@ data class Activity(
     val duration: Duration = Duration.ZERO,
     val quantity: Float = 0f,
     val notes: String = ""
-) : Parcelable
+) : Parcelable {
+
+    val isTimerRunning: Boolean
+        get() = duration.isZero && type.features[ActivityType.FEATURE_END]
+
+    fun durationSinceStart() = Duration.between(start_time, Instant.now())
+}

@@ -112,7 +112,7 @@ enum class ActivityType(
 
     companion object {
         // set using longArrayOf(0b3210)
-        val FEATURE_DATE = 3 //Has date
+        val FEATURE_DATE = 3 // Has date
         val FEATURE_START = 2 // Has start time
         val FEATURE_END = 1 // Has an end time (if false duration is always 0)
         val FEATURE_QUANTITY = 0 // Has a quantity

@@ -1,6 +1,7 @@
 package com.jsloane.littleone.di
 
 import android.content.Context
+import androidx.work.WorkManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -44,4 +45,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideLittleOneApi(): LittleOneApi = LittleOneApi()
+
+    @Provides
+    @Singleton
+    fun provideWorkManager(@ApplicationContext context: Context): WorkManager =
+        WorkManager.getInstance(context)
 }

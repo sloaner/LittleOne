@@ -236,7 +236,7 @@ internal fun FeedScreen(
                                 changeTimeframe = { actions(FeedAction.ChangeTimeframe(it)) }
                             )
                             Divider()
-                            if(viewState.isLoading) {
+                            if (viewState.isLoading) {
                                 LinearProgressIndicator(
                                     modifier = Modifier.fillMaxWidth()
                                 )

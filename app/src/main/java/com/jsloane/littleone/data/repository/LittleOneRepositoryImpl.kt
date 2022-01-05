@@ -22,7 +22,7 @@ class LittleOneRepositoryImpl @Inject constructor(
         familyId: String
     ): Flow<Result<Family>> = flow {
         emit(Result.Loading())
-        api.getFamily(familyId)?.toFamily()?.let {
+        api.getFamily(familyId)?.let {
             emit(Result.Success(it))
         } ?: emit(Result.Error("Error!"))
     }
@@ -31,7 +31,7 @@ class LittleOneRepositoryImpl @Inject constructor(
         userId: String
     ): Flow<Result<Family>> = flow {
         emit(Result.Loading())
-        api.findFamilyByUser(userId)?.toFamily()?.let {
+        api.findFamilyByUser(userId)?.let {
             emit(Result.Success(it))
         } ?: emit(Result.Error("Error!"))
     }
@@ -40,7 +40,7 @@ class LittleOneRepositoryImpl @Inject constructor(
         inviteCode: String
     ): Flow<Result<Family>> = flow {
         emit(Result.Loading())
-        api.findFamilyByInviteCode(inviteCode)?.toFamily()?.let {
+        api.findFamilyByInviteCode(inviteCode)?.let {
             // TODO: Workaround for Firestore bug
             if (it.inviteExpiration?.isBefore(Instant.now()) == true)
                 null
@@ -92,6 +92,17 @@ class LittleOneRepositoryImpl @Inject constructor(
         emit(Result.Success(id))
     }
 
+    override fun getActivity(
+        familyId: String,
+        childId: String,
+        activityId: String
+    ): Flow<Result<Activity>> = flow {
+        emit(Result.Loading())
+        api.getActivity(familyId, childId, activityId)?.let {
+            emit(Result.Success(it))
+        } ?: emit(Result.Error("Error!"))
+    }
+
     override fun createActivity(
         familyId: String,
         childId: String,
@@ -128,7 +139,7 @@ class LittleOneRepositoryImpl @Inject constructor(
         merge(
             flow { emit(Result.Loading(listOf<Child>())) },
             api.observeChildren(familyId).map {
-                Result.Success(it.mapNotNull { child -> child?.toChild() })
+                Result.Success(it.filterNotNull())
             }
         )
 
@@ -140,7 +151,7 @@ class LittleOneRepositoryImpl @Inject constructor(
         merge(
             flow { emit(Result.Loading(listOf<Activity>())) },
             api.observeActivities(familyId, childId, after).map {
-                Result.Success(it.mapNotNull { activity -> activity?.toActivity() })
+                Result.Success(it.filterNotNull())
             }
         )
 }

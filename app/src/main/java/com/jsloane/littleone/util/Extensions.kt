@@ -1,11 +1,17 @@
 package com.jsloane.littleone.util
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.ContextWrapper
 import androidx.activity.ComponentActivity
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 private tailrec fun Context.getContextActivity(): ComponentActivity? = when (this) {
     is ComponentActivity -> this
@@ -27,3 +33,19 @@ fun Instant.toLocalDateTime(zoneId: ZoneId = ZoneId.systemDefault()) =
 fun Int.zeroPad(minLength: Int = 2): String = this.toString().padStart(minLength, '0')
 
 fun Any.equalsAny(vararg comparisons: Any) = comparisons.any { it == this }
+
+fun BroadcastReceiver.goAsync(
+    coroutineScope: CoroutineScope = GlobalScope,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    block: suspend () -> Unit
+) {
+    val result = goAsync()
+    coroutineScope.launch(dispatcher) {
+        try {
+            block()
+        } finally {
+            // Always call finish(), even if the coroutineScope was cancelled
+            result.finish()
+        }
+    }
+}

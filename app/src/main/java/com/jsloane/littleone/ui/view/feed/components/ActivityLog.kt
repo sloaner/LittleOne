@@ -109,9 +109,7 @@ fun ActivityLog(
                     onClick = { expanded = if (expanded == activity.id) "" else activity.id },
                     onStop = {
                         stopTimer(
-                            activity.copy(
-                                duration = Duration.between(activity.start_time, Instant.now())
-                            )
+                            activity.copy(duration = activity.durationSinceStart())
                         )
                     },
                     onEdit = {
@@ -248,8 +246,8 @@ fun ActivityItem(
                         Formatters.time_month_day_year.format(time)
                     } else {
                         RelativeTimeFormatter.format(time) +
-                                if (isTimerRunning) ""
-                                else " • ${RelativeTimeFormatter.formatTimerShort(duration)}"
+                            if (isTimerRunning) ""
+                            else " • ${RelativeTimeFormatter.formatTimerShort(duration)}"
                     },
                     style = MaterialTheme.typography.caption
                 )

@@ -12,6 +12,8 @@ import com.jsloane.littleone.data.remote.entity.ActivityDto
 import com.jsloane.littleone.data.remote.entity.ChildDto
 import com.jsloane.littleone.data.remote.entity.FamilyDto
 import com.jsloane.littleone.domain.model.Activity
+import com.jsloane.littleone.domain.model.Child
+import com.jsloane.littleone.domain.model.Family
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -21,17 +23,17 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class LittleOneApi {
-    suspend fun getFamily(familyId: String): FamilyDto? {
+    suspend fun getFamily(familyId: String): Family? {
         val familyDoc = Firebase.firestore
             .collection(Collections.Family.id)
             .document(familyId)
             .get()
             .await()
 
-        return familyDoc.toObject()
+        return familyDoc.toObject<FamilyDto>()?.toFamily()
     }
 
-    suspend fun findFamilyByUser(userId: String): FamilyDto? {
+    suspend fun findFamilyByUser(userId: String): Family? {
         val userRef = Firebase.firestore
             .collection(Collections.User.id)
             .document(userId)
@@ -46,10 +48,10 @@ class LittleOneApi {
             .get()
             .await()
 
-        return familyDoc.documents.firstOrNull()?.toObject()
+        return familyDoc.documents.firstOrNull()?.toObject<FamilyDto>()?.toFamily()
     }
 
-    suspend fun findFamilyByInviteCode(inviteCode: String): FamilyDto? {
+    suspend fun findFamilyByInviteCode(inviteCode: String): Family? {
         val inviteFamilyDoc = Firebase.firestore
             .collection(Collections.Family.id)
             .whereEqualTo(
@@ -64,7 +66,7 @@ class LittleOneApi {
             .get()
             .await()
 
-        return inviteFamilyDoc.documents.firstOrNull()?.toObject()
+        return inviteFamilyDoc.documents.firstOrNull()?.toObject<FamilyDto>()?.toFamily()
     }
 
     suspend fun createFamily(userId: String): String {
@@ -129,6 +131,20 @@ class LittleOneApi {
         return childRef.id
     }
 
+    suspend fun getActivity(familyId: String, childId: String, activityId: String): Activity? {
+        val activityDoc = Firebase.firestore
+            .collection(Collections.Family.id)
+            .document(familyId)
+            .collection(Collections.Child.id)
+            .document(childId)
+            .collection(Collections.Activity.id)
+            .document(activityId)
+            .get()
+            .await()
+
+        return activityDoc.toObject<ActivityDto>()?.toActivity()
+    }
+
     suspend fun addActivity(familyId: String, childId: String, activity: Activity): String {
         val childRef = Firebase.firestore
             .collection(Collections.Family.id)
@@ -174,10 +190,9 @@ class LittleOneApi {
             .await()
     }
 
-    fun observeChildren(familyId: String): Flow<List<ChildDto?>> = callbackFlow {
+    fun observeChildren(familyId: String): Flow<List<Child?>> = callbackFlow {
         val queryHandler = EventListener<QuerySnapshot> { value, error ->
-            val list: List<ChildDto?> = value?.documents?.map { it.toObject() } ?: emptyList()
-            trySend(list)
+            trySend(value?.documents?.map { it.toObject<ChildDto>()?.toChild() }.orEmpty())
         }
 
         val childrenListener = Firebase.firestore
@@ -194,12 +209,12 @@ class LittleOneApi {
         familyId: String,
         childId: String,
         after: Instant = Instant.EPOCH
-    ): Flow<List<ActivityDto?>> =
+    ): Flow<List<Activity?>> =
         callbackFlow {
             val queryHandler = EventListener<QuerySnapshot> { value, error ->
-                val list: List<ActivityDto?> =
-                    value?.documents?.map { it.toObject() } ?: emptyList()
-                trySend(list)
+                trySend(
+                    value?.documents?.map { it.toObject<ActivityDto>()?.toActivity() }.orEmpty()
+                )
             }
 
             val childrenListener = Firebase.firestore
@@ -210,7 +225,6 @@ class LittleOneApi {
                 .collection(Collections.Activity.id)
                 .orderBy(Collections.Activity.Field.start_time, Query.Direction.DESCENDING)
                 .endAt(Timestamp(after.epochSecond, 0))
-//                .limit(100)
                 .addSnapshotListener(queryHandler)
 
             awaitClose { childrenListener.remove() }

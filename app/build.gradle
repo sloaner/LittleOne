@@ -92,6 +92,7 @@ dependencies {
   implementation Libs.AndroidX.Lifecycle.runtime
   implementation Libs.AndroidX.Navigation.navigationCompose
   implementation Libs.AndroidX.Data.datastore
+  implementation Libs.AndroidX.Work.work
 
   implementation Libs.AndroidX.Compose.runtime
   implementation Libs.AndroidX.Compose.foundation
@@ -112,6 +113,8 @@ dependencies {
   implementation Libs.Hilt.hilt
   implementation Libs.Hilt.compose
   kapt Libs.Hilt.compiler
+  implementation Libs.Hilt.work
+  kapt Libs.Hilt.workCompiler
 
   implementation Libs.Coil.coilCompose
 
