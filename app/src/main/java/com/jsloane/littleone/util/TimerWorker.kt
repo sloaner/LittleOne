@@ -87,14 +87,14 @@ class TimerWorker @AssistedInject constructor(
 
         val stopAction = PendingIntent.getBroadcast(
             applicationContext,
-            0,
+            activityId.hashCode(),
             Intent(applicationContext, NotificationBroadcastReceiver::class.java).apply {
                 action = NotificationBroadcastReceiver.STOP_TIMER
                 putExtra(FAMILY_ID_KEY, familyId)
                 putExtra(CHILD_ID_KEY, childId)
                 putExtra(ACTIVITY_ID_KEY, activityId)
             },
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)

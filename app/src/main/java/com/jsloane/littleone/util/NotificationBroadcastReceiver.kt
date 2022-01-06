@@ -58,7 +58,7 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                         }
                     }
                 }
-                println("TIMER STOPPED")
+                println("async done")
             }
         }
     }
