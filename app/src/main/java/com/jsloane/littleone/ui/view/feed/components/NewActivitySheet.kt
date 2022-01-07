@@ -259,7 +259,9 @@ fun NewActivitySheet(
                                 .toInstant(),
                             duration =
                             if (endTime != null) {
-                                Duration.between(startTime, endTime)
+                                Duration.between(startTime, endTime).let {
+                                    if (it.isNegative) it.plusHours(24) else it
+                                }
                             } else {
                                 Duration.ZERO
                             },
