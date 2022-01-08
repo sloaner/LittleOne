@@ -62,21 +62,21 @@ enum class ActivityType(
     ),
     TUMMY_TIME(
         "Tummy Time",
-        Category.LEISURE,
+        Category.PLAY,
         "TUMMY",
         BitSet.valueOf(longArrayOf(0b1110)),
         R.drawable.ic_activity_tummy_time
     ),
     PLAY(
         "Play",
-        Category.LEISURE,
+        Category.PLAY,
         "PLAY",
         BitSet.valueOf(longArrayOf(0b1110)),
         R.drawable.ic_activity_play
     ),
     OUTDOORS(
         "Outdoors",
-        Category.LEISURE,
+        Category.PLAY,
         "OUT",
         BitSet.valueOf(longArrayOf(0b1110)),
         R.drawable.ic_activity_outdoors
@@ -103,11 +103,16 @@ enum class ActivityType(
         R.drawable.ic_activity_sleep
     );
 
-    enum class Category(val order: Int = 0, val title: String) {
-        FEEDING(1, "Feeding"),
-        DIAPER(2, "Diapering"),
-        LEISURE(3, "Leisure"),
-        SLEEP(4, "Sleep")
+    enum class Category(
+        val title: String,
+        @DrawableRes val icon: Int,
+        val multilineSummary: Boolean
+    ) {
+        FEEDING("Feeding", R.drawable.ic_activity_bottle, true),
+        DIAPER("Diapering", R.drawable.ic_diaper, true),
+        LEISURE("Misc", R.drawable.ic_activity_tv, false),
+        PLAY("Play", R.drawable.ic_activity_tummy_time, false),
+        SLEEP("Sleep", R.drawable.ic_activity_sleep, false)
     }
 
     companion object {
