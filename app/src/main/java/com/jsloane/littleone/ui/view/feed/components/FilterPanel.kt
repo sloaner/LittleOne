@@ -46,7 +46,7 @@ fun FilterPanel(
     LazyColumn(modifier = modifier) {
         items(filters.keys.toList()) { group ->
             FilterGroup(
-                header = group.name,
+                header = group.title.uppercase(),
                 filters = filters[group].orEmpty(),
                 backgroundColor = backgroundColor,
                 contentColor = contentColor,
@@ -130,26 +130,29 @@ private fun PreviewPanel() {
             backLayerContent = {
                 FilterPanel(
                     filters = sortedMapOf(
+                        compareBy<ActivityType.Category> { it.order },
                         ActivityType.Category.FEEDING to listOf(
                             ActivityFilterState(ActivityType.LEFT_BREAST, false),
                             ActivityFilterState(ActivityType.RIGHT_BREAST, false),
                             ActivityFilterState(ActivityType.BOTTLE, false),
                             ActivityFilterState(ActivityType.MEAL, false),
                         ),
+                        ActivityType.Category.SLEEP to listOf(
+                            ActivityFilterState(ActivityType.SLEEP, false)
+                        ),
                         ActivityType.Category.DIAPER to listOf(
                             ActivityFilterState(ActivityType.PEE, false),
                             ActivityFilterState(ActivityType.POOP, false),
                             ActivityFilterState(ActivityType.BOTH, false),
                         ),
-                        ActivityType.Category.LEISURE to listOf(
+                        ActivityType.Category.PLAY to listOf(
                             ActivityFilterState(ActivityType.TUMMY_TIME, false),
                             ActivityFilterState(ActivityType.PLAY, false),
                             ActivityFilterState(ActivityType.OUTDOORS, false),
+                        ),
+                        ActivityType.Category.LEISURE to listOf(
                             ActivityFilterState(ActivityType.BATH, false),
                             ActivityFilterState(ActivityType.TV, false),
-                        ),
-                        ActivityType.Category.SLEEP to listOf(
-                            ActivityFilterState(ActivityType.SLEEP, false)
                         )
                     ),
                     filterChanged = {}

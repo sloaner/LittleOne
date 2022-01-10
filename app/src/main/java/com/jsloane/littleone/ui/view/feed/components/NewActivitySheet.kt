@@ -78,20 +78,22 @@ fun NewActivityChoiceSheet(
             NewActivitySheetRow(label = ActivityType.BOTTLE, onClick = onClick)
             NewActivitySheetRow(label = ActivityType.MEAL, onClick = onClick)
 
+            NewActivitySheetHeader(header = ActivityType.Category.SLEEP)
+            NewActivitySheetRow(label = ActivityType.SLEEP, onClick = onClick)
+
             NewActivitySheetHeader(header = ActivityType.Category.DIAPER)
             NewActivitySheetRow(label = ActivityType.PEE, onClick = onClick)
             NewActivitySheetRow(label = ActivityType.POOP, onClick = onClick)
             NewActivitySheetRow(label = ActivityType.BOTH, onClick = onClick)
 
-            NewActivitySheetHeader(header = ActivityType.Category.LEISURE)
+            NewActivitySheetHeader(header = ActivityType.Category.PLAY)
             NewActivitySheetRow(label = ActivityType.TUMMY_TIME, onClick = onClick)
             NewActivitySheetRow(label = ActivityType.PLAY, onClick = onClick)
             NewActivitySheetRow(label = ActivityType.OUTDOORS, onClick = onClick)
+
+            NewActivitySheetHeader(header = ActivityType.Category.LEISURE)
             NewActivitySheetRow(label = ActivityType.BATH, onClick = onClick)
             NewActivitySheetRow(label = ActivityType.TV, onClick = onClick)
-
-            NewActivitySheetHeader(header = ActivityType.Category.SLEEP)
-            NewActivitySheetRow(label = ActivityType.SLEEP, onClick = onClick)
         }
     }
 }

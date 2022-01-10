@@ -75,10 +75,12 @@ private val filterGroups = sortedMapOf(
         ActivityType.POOP,
         ActivityType.BOTH,
     ),
-    ActivityType.Category.LEISURE to listOf(
+    ActivityType.Category.PLAY to listOf(
         ActivityType.TUMMY_TIME,
         ActivityType.PLAY,
         ActivityType.OUTDOORS,
+    ),
+    ActivityType.Category.LEISURE to listOf(
         ActivityType.BATH,
         ActivityType.TV,
     ),

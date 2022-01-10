@@ -104,15 +104,16 @@ enum class ActivityType(
     );
 
     enum class Category(
+        val order: Int,
         val title: String,
         @DrawableRes val icon: Int,
         val multilineSummary: Boolean
     ) {
-        FEEDING("Feeding", R.drawable.ic_activity_bottle, true),
-        DIAPER("Diapering", R.drawable.ic_diaper, true),
-        LEISURE("Misc", R.drawable.ic_activity_tv, false),
-        PLAY("Play", R.drawable.ic_activity_tummy_time, false),
-        SLEEP("Sleep", R.drawable.ic_activity_sleep, false)
+        FEEDING(1, "Feeding", R.drawable.ic_activity_bottle, true),
+        SLEEP(2, "Sleep", R.drawable.ic_activity_sleep, false),
+        DIAPER(3, "Diapering", R.drawable.ic_diaper, true),
+        PLAY(4, "Play", R.drawable.ic_activity_tummy_time, false),
+        LEISURE(5, "Misc", R.drawable.ic_activity_tv, false)
     }
 
     companion object {
