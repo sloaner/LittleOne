@@ -227,15 +227,21 @@ internal fun FeedScreen(
                         }
                     ) {
                         Column {
-                            AtAGlance(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                                items = viewState.glanceActivities,
-                                timeframe = viewState.timeframe,
-                                changeTimeframe = { actions(FeedAction.ChangeTimeframe(it)) }
-                            )
-                            Divider()
+                            if (
+                                viewState.glanceEnabled &&
+                                viewState.glanceSlots.any { it != null }
+                            ) {
+                                AtAGlance(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                                    slots = viewState.glanceSlots,
+                                    items = viewState.glanceActivities,
+                                    timeframe = viewState.timeframe,
+                                    changeTimeframe = { actions(FeedAction.ChangeTimeframe(it)) }
+                                )
+                                Divider()
+                            }
                             if (viewState.isLoading) {
                                 LinearProgressIndicator(
                                     modifier = Modifier.fillMaxWidth()

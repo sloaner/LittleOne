@@ -59,10 +59,8 @@ class RelativeTimeFormatter {
 
         fun formatEstimate(duration: Duration): String {
             return when {
-                duration < Duration.ofMinutes(1L) ->
-                    "${duration.seconds} seconds"
                 duration < Duration.ofHours(3L) ->
-                    "${duration.toMinutes()} minutes"
+                    "${duration.toMinutes()} mins"
                 else ->
                     "${duration.toHours()} hours"
             }

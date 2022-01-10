@@ -75,7 +75,8 @@ fun DragContainer(
             modifier = modifier
                 .onGloballyPositioned {
                     myWindowPosition = it.localToWindow(Offset.Zero)
-                }) {
+                }
+        ) {
             content()
             if (state.isDragging) {
                 var dragSize by remember { mutableStateOf(IntSize.Zero) }
@@ -86,7 +87,7 @@ fun DragContainer(
                             offset.toIntOffset() - dragSize / 2
                         }
                         .zIndex(4f)
-                        //.scale(.5f)
+                        // .scale(.5f)
                         .applyIf(dragSize != IntSize.Zero) {
                             border(width = 2.dp, color = Color.Gray)
                         }

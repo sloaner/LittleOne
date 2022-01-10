@@ -85,7 +85,7 @@ enum class ActivityType(
         "Bath",
         Category.LEISURE,
         "BATH",
-        BitSet.valueOf(longArrayOf(0b1110)),
+        BitSet.valueOf(longArrayOf(0b1100)),
         R.drawable.ic_activity_bath
     ),
     TV(

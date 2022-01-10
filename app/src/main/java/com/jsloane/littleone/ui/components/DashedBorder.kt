@@ -23,7 +23,14 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.isSimple
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.drawscope.withTransform
@@ -84,7 +91,8 @@ fun Modifier.dashedBorder(width: Dp, brush: Brush, shape: Shape, on: Dp, off: Dp
                     if (borderSize > 0 && size.minDimension > 0f) {
                         if (outline is Outline.Rectangle) {
                             stroke = Stroke(
-                                borderSize, pathEffect = PathEffect.dashPathEffect(
+                                borderSize,
+                                pathEffect = PathEffect.dashPathEffect(
                                     floatArrayOf(on.toPx(), off.toPx())
                                 )
                             )
@@ -107,7 +115,8 @@ fun Modifier.dashedBorder(width: Dp, brush: Brush, shape: Shape, on: Dp, off: Dp
                             )
                             insetOutline = shape.createOutline(insetSize, layoutDirection, this)
                             stroke = Stroke(
-                                strokeWidth, pathEffect = PathEffect.dashPathEffect(
+                                strokeWidth,
+                                pathEffect = PathEffect.dashPathEffect(
                                     floatArrayOf(on.toPx(), off.toPx())
                                 )
                             )
@@ -151,7 +160,7 @@ fun Modifier.dashedBorder(width: Dp, brush: Brush, shape: Shape, on: Dp, off: Dp
                         if (stroke != null) {
                             if (insetOutline != null && pathClip != null) {
                                 val isSimpleRoundRect = insetOutline is Outline.Rounded &&
-                                        insetOutline.roundRect.isSimple
+                                    insetOutline.roundRect.isSimple
                                 withTransform({
                                     clipPath(pathClip)
                                     // we are drawing the round rect not as a path so we must
@@ -196,7 +205,8 @@ fun Modifier.dashedBorder(width: Dp, brush: Brush, shape: Shape, on: Dp, off: Dp
                                         )
                                     } else {
                                         drawPath(
-                                            pathClip, brush = brush, style = Stroke(
+                                            pathClip, brush = brush,
+                                            style = Stroke(
                                                 Stroke.HairlineWidth,
                                                 pathEffect = PathEffect.dashPathEffect(
                                                     floatArrayOf(on.toPx(), off.toPx())

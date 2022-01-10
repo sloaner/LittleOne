@@ -27,9 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.jsloane.littleone.R
 import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.domain.model.AtAGlanceTimeframe
 import com.jsloane.littleone.ui.theme.LittleOneTheme
@@ -40,6 +40,7 @@ import java.time.Duration
 @Composable
 fun AtAGlance(
     modifier: Modifier = Modifier,
+    slots: List<ActivityType.Category?>,
     items: Map<ActivityType.Category, FeedViewState.AggregateActivity> = emptyMap(),
     timeframe: AtAGlanceTimeframe,
     changeTimeframe: (AtAGlanceTimeframe) -> Unit
@@ -76,33 +77,50 @@ fun AtAGlance(
             modifier = Modifier
                 .padding(top = 8.dp)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = when (slots.count { it != null }) {
+                1 -> Arrangement.Center
+                2 -> Arrangement.SpaceAround
+                else -> Arrangement.SpaceBetween
+            },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val feed = items[ActivityType.Category.FEEDING]
-            val diaper = items[ActivityType.Category.DIAPER]
-            val sleep = items[ActivityType.Category.SLEEP]
-            GlanceItem(
-                icon = R.drawable.ic_activity_bottle,
-                line1 = "${feed?.quantity ?: 0} feeds",
-                line2 = RelativeTimeFormatter.formatEstimate(feed?.duration ?: Duration.ZERO)
-            )
-            GlanceItem(
-                icon = R.drawable.ic_diaper,
-                line1 = "${diaper?.quantity ?: 0} changes",
-                line2 = "${diaper?.splitQuantity?.get(ActivityType.PEE) ?: 0} pee · " +
-                    "${diaper?.splitQuantity?.get(ActivityType.POOP) ?: 0} poo"
-            )
-            GlanceItem(
-                icon = R.drawable.ic_activity_sleep,
-                line1 = RelativeTimeFormatter.formatEstimate(sleep?.duration ?: Duration.ZERO)
-            )
+            slots.filterNotNull().forEach {
+                GlanceItem(category = it, data = items[it] ?: FeedViewState.AggregateActivity())
+            }
         }
     }
 }
 
 @Composable
 fun GlanceItem(
+    modifier: Modifier = Modifier,
+    category: ActivityType.Category,
+    data: FeedViewState.AggregateActivity
+) {
+    when (category) {
+        ActivityType.Category.FEEDING -> FeedingSlot(
+            quantity = data.quantity,
+            duration = data.duration
+        )
+        ActivityType.Category.DIAPER -> DiaperSlot(
+            quantity = data.quantity,
+            pee = data.splitQuantity[ActivityType.PEE] ?: 0,
+            poo = data.splitQuantity[ActivityType.POOP] ?: 0
+        )
+        ActivityType.Category.SLEEP -> SleepSlot(
+            duration = data.duration
+        )
+        ActivityType.Category.LEISURE -> LeisureSlot(
+            duration = data.duration
+        )
+        ActivityType.Category.PLAY -> PlaySlot(
+            duration = data.duration
+        )
+    }
+}
+
+@Composable
+private fun GlanceItem(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
     line1: String,
@@ -111,13 +129,65 @@ fun GlanceItem(
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(painter = painterResource(id = icon), contentDescription = null)
         CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
-            Column(modifier = Modifier.padding(start = 4.dp)) {
-                Text(text = line1, style = MaterialTheme.typography.caption)
+            Column(modifier = Modifier.padding(start = 8.dp)) {
+                Text(
+                    text = line1,
+                    style = MaterialTheme.typography.caption,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
+                )
                 if (line2 != null)
-                    Text(text = line2, style = MaterialTheme.typography.caption)
+                    Text(
+                        text = line2,
+                        style = MaterialTheme.typography.caption,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
             }
         }
     }
+}
+
+@Composable
+private fun FeedingSlot(quantity: Int, duration: Duration) {
+    GlanceItem(
+        icon = ActivityType.Category.FEEDING.icon,
+        line1 = "$quantity feeds",
+        line2 = RelativeTimeFormatter.formatEstimate(duration)
+    )
+}
+
+@Composable
+private fun DiaperSlot(quantity: Int, pee: Int, poo: Int) {
+    GlanceItem(
+        icon = ActivityType.Category.DIAPER.icon,
+        line1 = "$quantity changes",
+        line2 = "$pee pee · $poo poo"
+    )
+}
+
+@Composable
+private fun SleepSlot(duration: Duration) {
+    GlanceItem(
+        icon = ActivityType.Category.SLEEP.icon,
+        line1 = RelativeTimeFormatter.formatEstimate(duration)
+    )
+}
+
+@Composable
+private fun LeisureSlot(duration: Duration) {
+    GlanceItem(
+        icon = ActivityType.Category.LEISURE.icon,
+        line1 = RelativeTimeFormatter.formatEstimate(duration)
+    )
+}
+
+@Composable
+private fun PlaySlot(duration: Duration) {
+    GlanceItem(
+        icon = ActivityType.Category.PLAY.icon,
+        line1 = RelativeTimeFormatter.formatEstimate(duration)
+    )
 }
 
 @Preview
@@ -128,6 +198,11 @@ private fun PreviewAtAGlance() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 16.dp),
+            slots = listOf(
+                ActivityType.Category.FEEDING,
+                ActivityType.Category.DIAPER,
+                ActivityType.Category.SLEEP
+            ),
             items = mapOf(
                 ActivityType.Category.FEEDING to FeedViewState.AggregateActivity(
                     quantity = 3,

@@ -15,6 +15,8 @@ data class FeedViewState(
     val selectedFilters: List<ActivityType> = emptyList(),
     val activities: List<Activity> = emptyList(),
     val todaysActivities: List<Activity> = emptyList(),
+    val glanceEnabled: Boolean = false,
+    val glanceSlots: List<ActivityType.Category?> = listOf(null, null, null),
     val timeframe: AtAGlanceTimeframe = AtAGlanceTimeframe.DAY,
     val isAuthenticated: Boolean = false,
     val isLoading: Boolean = false

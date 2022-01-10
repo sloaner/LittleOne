@@ -18,7 +18,7 @@ import com.jsloane.littleone.domain.observers.ActivityObserver
 import com.jsloane.littleone.domain.observers.AuthStateObserver
 import com.jsloane.littleone.domain.observers.ChildObserver
 import com.jsloane.littleone.domain.repository.AppSettingsRepository
-import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.PreferenceKey
+import com.jsloane.littleone.domain.repository.AppSettingsRepository.PreferenceKey
 import com.jsloane.littleone.domain.usecases.CreateActivityUseCase
 import com.jsloane.littleone.domain.usecases.DeleteActivityUseCase
 import com.jsloane.littleone.domain.usecases.GetFamilyIdUseCase
@@ -26,6 +26,7 @@ import com.jsloane.littleone.domain.usecases.UpdateActivityUseCase
 import com.jsloane.littleone.navigation.Destination
 import com.jsloane.littleone.navigation.NavigationManager
 import com.jsloane.littleone.util.TimerWorker
+import com.jsloane.littleone.util.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import java.time.ZoneId
@@ -65,13 +66,17 @@ class FeedViewModel @Inject constructor(
         todayActivityObserver.flow,
         selectedFilters,
         selectedChild,
-        authStateObserver.flow.filterIsInstance<Result.Success<Boolean>>()
-    ) { activities, today, filters, child, auth ->
+        authStateObserver.flow.filterIsInstance<Result.Success<Boolean>>(),
+        appSettingsRepository.atAGlanceEnabled,
+        appSettingsRepository.atAGlanceSlots
+    ) { activities, today, filters, child, auth, glance, slots ->
         if (activities is Result.Loading<*> || today is Result.Loading<*>) {
             FeedViewState(
                 selectedFilters = filters,
                 selectedChild = child,
                 timeframe = glanceTimeframe.value,
+                glanceEnabled = glance,
+                glanceSlots = slots,
                 isAuthenticated = auth.data,
                 isLoading = true
             )
@@ -85,6 +90,8 @@ class FeedViewModel @Inject constructor(
                 selectedFilters = filters,
                 selectedChild = child,
                 timeframe = glanceTimeframe.value,
+                glanceEnabled = glance,
+                glanceSlots = slots,
                 isAuthenticated = auth.data
             )
         } else {

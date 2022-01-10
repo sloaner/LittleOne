@@ -24,15 +24,12 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.jsloane.littleone.domain.model.ActivityType
 import com.jsloane.littleone.ui.theme.LittleOneTheme
 import com.jsloane.littleone.ui.view.settings.components.FamilyCard
 import com.jsloane.littleone.ui.view.settings.components.GlanceCard
@@ -64,11 +61,6 @@ private fun SettingsScreen(
     actions: (SettingsAction) -> Unit
 ) {
     val scaffoldState = rememberScaffoldState()
-
-    var glanceEnabled by remember { mutableStateOf(true) }
-    var slot1: ActivityType.Category? by remember { mutableStateOf(ActivityType.Category.FEEDING) }
-    var slot2: ActivityType.Category? by remember { mutableStateOf(null) }
-    var slot3: ActivityType.Category? by remember { mutableStateOf(ActivityType.Category.SLEEP) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -104,14 +96,14 @@ private fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                featureEnabled = glanceEnabled,
-                toggleFeature = { glanceEnabled = it },
-                slot1 = slot1,
-                slot2 = slot2,
-                slot3 = slot3,
-                slot1Changed = { slot1 = it },
-                slot2Changed = { slot2 = it },
-                slot3Changed = { slot3 = it },
+                featureEnabled = viewState.glanceEnabled,
+                toggleFeature = { actions(SettingsAction.UpdateGlanceEnabled(it)) },
+                slot1 = viewState.glanceSlots[0],
+                slot2 = viewState.glanceSlots[1],
+                slot3 = viewState.glanceSlots[2],
+                slot1Changed = { actions(SettingsAction.UpdateGlanceSlot1(it)) },
+                slot2Changed = { actions(SettingsAction.UpdateGlanceSlot2(it)) },
+                slot3Changed = { actions(SettingsAction.UpdateGlanceSlot3(it)) },
             )
             OutlinedButton(
                 modifier = Modifier.padding(16.dp),

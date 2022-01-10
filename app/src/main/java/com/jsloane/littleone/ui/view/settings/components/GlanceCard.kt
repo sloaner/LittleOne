@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
 import androidx.compose.material.ContentAlpha
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalContentAlpha
 import androidx.compose.material.MaterialTheme
@@ -38,7 +39,9 @@ import com.jsloane.littleone.ui.components.DragReceiver
 import com.jsloane.littleone.ui.components.Draggable
 import com.jsloane.littleone.ui.components.dashedBorder
 import com.jsloane.littleone.ui.theme.LittleOneTheme
+import com.jsloane.littleone.ui.view.feed.FeedViewState
 import com.jsloane.littleone.ui.view.feed.components.GlanceItem
+import java.time.Duration
 
 @Composable
 fun GlanceCard(
@@ -74,62 +77,84 @@ fun GlanceCard(
                     Switch(
                         checked = featureEnabled,
                         onCheckedChange = toggleFeature,
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary)
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colors.primary
+                        )
                     )
                 }
-                Text(text = "Selected", style = MaterialTheme.typography.body2)
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    text = "Selected",
+                    style = MaterialTheme.typography.body2
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DragReceiver(onReceive = slot1Changed) { receiving ->
+                    DragReceiver(
+                        modifier = Modifier.weight(1f),
+                        onReceive = slot1Changed
+                    ) { receiving ->
                         GlanceSlot(
                             highlight = receiving,
                             onRemove = { slot1Changed(null) },
                             content = slot1?.let {
                                 { BorderedGlanceItem(highlight = receiving, category = it) }
-                            })
+                            }
+                        )
                     }
-                    DragReceiver(onReceive = slot2Changed) { receiving ->
+                    DragReceiver(
+                        modifier = Modifier.weight(1f),
+                        onReceive = slot2Changed
+                    ) { receiving ->
                         GlanceSlot(
                             highlight = receiving,
                             onRemove = { slot2Changed(null) },
                             content = slot2?.let {
                                 { BorderedGlanceItem(highlight = receiving, category = it) }
-                            })
+                            }
+                        )
                     }
-                    DragReceiver(onReceive = slot3Changed) { receiving ->
+                    DragReceiver(
+                        modifier = Modifier.weight(1f),
+                        onReceive = slot3Changed
+                    ) { receiving ->
                         GlanceSlot(
                             highlight = receiving,
                             onRemove = { slot3Changed(null) },
                             content = slot3?.let {
                                 { BorderedGlanceItem(highlight = receiving, category = it) }
-                            })
+                            }
+                        )
                     }
                 }
-                Text(text = "Available", style = MaterialTheme.typography.body2)
+                Divider(modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    text = "Available",
+                    style = MaterialTheme.typography.body2
+                )
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     mainAxisSpacing = 8.dp,
                     crossAxisSpacing = 8.dp
                 ) {
-                    Draggable(dragDataProducer = { ActivityType.Category.FEEDING }) {
-                        BorderedGlanceItem(category = ActivityType.Category.FEEDING)
-                    }
-                    Draggable(dragDataProducer = { ActivityType.Category.DIAPER }) {
-                        BorderedGlanceItem(category = ActivityType.Category.DIAPER)
-                    }
-                    Draggable(dragDataProducer = { ActivityType.Category.SLEEP }) {
-                        BorderedGlanceItem(category = ActivityType.Category.SLEEP)
-                    }
-                    Draggable(dragDataProducer = { ActivityType.Category.PLAY }) {
-                        BorderedGlanceItem(category = ActivityType.Category.PLAY)
-                    }
-                    Draggable(dragDataProducer = { ActivityType.Category.LEISURE }) {
-                        BorderedGlanceItem(category = ActivityType.Category.LEISURE)
+                    listOf(
+                        ActivityType.Category.FEEDING,
+                        ActivityType.Category.SLEEP,
+                        ActivityType.Category.PLAY,
+                        ActivityType.Category.LEISURE,
+                        ActivityType.Category.DIAPER
+                    ).forEach { category ->
+                        Column {
+                            Text(category.title, style = MaterialTheme.typography.caption)
+                            Draggable(dragDataProducer = { category }) {
+                                BorderedGlanceItem(category = category)
+                            }
+                        }
                     }
                 }
             }
@@ -149,7 +174,7 @@ private fun GlanceSlot(
             val alpha = if (highlight) ContentAlpha.high else .12f
             CompositionLocalProvider(LocalContentAlpha provides alpha) {
                 Box(
-                    modifier = Modifier
+                    modifier = modifier
                         .defaultMinSize(minWidth = 96.dp, minHeight = 64.dp)
                         .dashedBorder(
                             width = 2.dp,
@@ -212,9 +237,12 @@ fun BorderedGlanceItem(
         contentAlignment = Alignment.Center
     ) {
         GlanceItem(
-            icon = category.icon,
-            line1 = if (category.multilineSummary) "6 times" else "42 mins",
-            line2 = if (category.multilineSummary) "42 mins" else null
+            category = category,
+            data = FeedViewState.AggregateActivity(
+                quantity = 6,
+                duration = Duration.ofMinutes(42),
+                splitQuantity = mapOf(ActivityType.PEE to 4, ActivityType.POOP to 3)
+            )
         )
     }
 }
@@ -224,9 +252,9 @@ fun BorderedGlanceItem(
 private fun PreviewGlanceCard() {
     LittleOneTheme {
         GlanceCard(
-            slot1 = ActivityType.Category.FEEDING,
+            slot1 = ActivityType.Category.DIAPER,
             slot2 = null,
-            slot3 = ActivityType.Category.SLEEP
+            slot3 = ActivityType.Category.DIAPER
         )
     }
 }

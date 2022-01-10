@@ -49,3 +49,11 @@ fun BroadcastReceiver.goAsync(
         }
     }
 }
+
+inline fun <reified T : Enum<T>> valueOf(name: String): T? {
+    return try {
+        java.lang.Enum.valueOf(T::class.java, name)
+    } catch (e: IllegalArgumentException) {
+        null
+    }
+}

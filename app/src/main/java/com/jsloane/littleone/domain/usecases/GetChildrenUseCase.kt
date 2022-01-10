@@ -5,7 +5,7 @@ import com.jsloane.littleone.domain.ResultUseCase
 import com.jsloane.littleone.domain.UseCase
 import com.jsloane.littleone.domain.model.Family
 import com.jsloane.littleone.domain.repository.AppSettingsRepository
-import com.jsloane.littleone.domain.repository.AppSettingsRepository.Companion.PreferenceKey
+import com.jsloane.littleone.domain.repository.AppSettingsRepository.PreferenceKey
 import com.jsloane.littleone.domain.repository.LittleOneRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
