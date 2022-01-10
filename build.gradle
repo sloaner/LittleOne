@@ -14,7 +14,7 @@ buildscript {
 }
 
 plugins {
-  id 'com.diffplug.spotless' version '6.0.5'
+  id 'com.diffplug.spotless' version '6.1.2'
   id "com.github.ben-manes.versions" version "0.41.0"
 }
 
@@ -40,7 +40,7 @@ subprojects {
       freeCompilerArgs += '-Xopt-in=kotlin.Experimental'
 
       // Set JVM target to 11
-      jvmTarget = JavaVersion.VERSION_11
+      jvmTarget = "1.8"
     }
   }
 
