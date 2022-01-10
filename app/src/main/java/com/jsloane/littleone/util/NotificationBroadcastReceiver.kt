@@ -53,6 +53,8 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                                     ).collectLatest {
                                         println("DONE")
                                     }
+                                } else {
+                                    workManager.cancelUniqueWork(it.data.id)
                                 }
                             }
                         }

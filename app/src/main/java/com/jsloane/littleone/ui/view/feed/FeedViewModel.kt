@@ -173,17 +173,24 @@ class FeedViewModel @Inject constructor(
                 .collectLatest { result ->
                     result.data
                         .take(10)
-                        .filter { it.isTimerRunning }
                         .forEach {
-                            val request = OneTimeWorkRequestBuilder<TimerWorker>()
-                                .setInputData(
-                                    workDataOf(
-                                        TimerWorker.FAMILY_ID_KEY to currentFamily.value,
-                                        TimerWorker.CHILD_ID_KEY to selectedChild.value.id,
-                                        TimerWorker.ACTIVITY_ID_KEY to it.id
-                                    )
-                                ).build()
-                            workManager.enqueueUniqueWork(it.id, ExistingWorkPolicy.KEEP, request)
+                            if (it.isTimerRunning) {
+                                val request = OneTimeWorkRequestBuilder<TimerWorker>()
+                                    .setInputData(
+                                        workDataOf(
+                                            TimerWorker.FAMILY_ID_KEY to currentFamily.value,
+                                            TimerWorker.CHILD_ID_KEY to selectedChild.value.id,
+                                            TimerWorker.ACTIVITY_ID_KEY to it.id
+                                        )
+                                    ).build()
+                                workManager.enqueueUniqueWork(
+                                    it.id,
+                                    ExistingWorkPolicy.KEEP,
+                                    request
+                                )
+                            } else {
+                                workManager.cancelUniqueWork(it.id)
+                            }
                         }
                 }
         }
